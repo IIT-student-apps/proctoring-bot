@@ -7,5 +7,6 @@ public enum State {
     NEW_TEACHER,
     NEW_STUDENT,
     MENU_TEACHER,
-    MENU_STUDENT
+    MENU_STUDENT,
+    PICK_STUDENT_MENU_ITEM
 }
