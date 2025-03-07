@@ -14,8 +14,8 @@ public class StateMethodHandler {
 
     private final Object bean;
     private final Method method;
-    private final State startState;
-    private final State endState;
+    private final State fromState;
+    private final State toState;
     private final Set<Role> roleSet;
 
 }

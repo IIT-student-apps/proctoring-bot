@@ -55,8 +55,8 @@ public class TelegramUpdateDispatcher {
 
             handler.getMethod().invoke(handler.getBean(), request, response);
 
-            if (handler.getEndState() != State.NONE){
-                user.setState(handler.getEndState());
+            if (handler.getToState() != State.NONE){
+                user.setState(handler.getToState());
                 dbUserService.updateUser(user);
             }
 
