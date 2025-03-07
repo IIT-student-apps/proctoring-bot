@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: proctoring-bot
+  datasource:
+    url: jdbc:postgresql://localhost:5432/proctoring_bot
+    username: proctoring_bot
+    password: password
+  jpa:
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+bot:
+  name: proctoring-bot
+  token: <TOKEN>
+
+google:
+  application:
+    name: ProctoringBot
+  sheets:
+    table-id: <TABLE_ID>
+    credentials:
+      path: src/main/resources/tokens/proctoringbot.json

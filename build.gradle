@@ -1,0 +1,46 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.4.3'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'org.bsuir'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+
+	implementation 'com.google.apis:google-api-services-sheets:v4-rev612-1.25.0'
+	implementation 'com.google.auth:google-auth-library-oauth2-http:1.33.1'
+	implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.3'
+
+	implementation 'org.springframework.boot:spring-boot-starter'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.telegram:telegrambots:6.9.0'
+	implementation 'org.liquibase:liquibase-core'
+
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	runtimeOnly 'org.postgresql:postgresql'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
