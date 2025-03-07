@@ -72,5 +72,4 @@ public class StartController {
                 .text("Вы успешно зарегистрированы как студент")
                 .build());
     }
-
 }
