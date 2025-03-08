@@ -8,6 +8,7 @@ import org.bsuir.proctoringbot.bot.security.Role;
 import org.bsuir.proctoringbot.bot.security.UserDetails;
 import org.bsuir.proctoringbot.bot.security.UserService;
 import org.bsuir.proctoringbot.bot.statemachine.State;
+import org.bsuir.proctoringbot.util.TelegramUtil;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.InvocationTargetException;
@@ -34,8 +35,10 @@ public class TelegramUpdateDispatcher {
     public void dispatch(TelegramRequest request, TelegramResponse response) {
         try {
 
-            UserDetails user = authenticationManager.authenticate(request.getUpdate().getMessage().getFrom().getId(),
-                    request.getUpdate().getMessage().getFrom().getUserName());
+            UserDetails user = authenticationManager.authenticate(
+                    TelegramUtil.getChatId(request.getUpdate()),
+                    TelegramUtil.getUserName(request.getUpdate())
+            );
 
             request.setUser(user);
 
@@ -61,6 +64,7 @@ public class TelegramUpdateDispatcher {
             }
 
         } catch(InvocationTargetException ex){
+            log.error(ex.getCause().getMessage());
             throw new TelegramMessageException(ex.getCause().getMessage());
         } catch(Exception e){
             log.warn("Caught unhandled exception for {}", request.getMessage(), e);
