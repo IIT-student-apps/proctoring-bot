@@ -8,7 +8,9 @@ import org.bsuir.proctoringbot.bot.dispatcher.TelegramResponse;
 import org.bsuir.proctoringbot.bot.security.AllowedRoles;
 import org.bsuir.proctoringbot.bot.security.Role;
 import org.bsuir.proctoringbot.bot.statemachine.State;
+import org.bsuir.proctoringbot.service.SubjectService;
 import org.bsuir.proctoringbot.validator.InputValidator;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 @TelegramController
 @RequiredArgsConstructor
@@ -16,10 +18,18 @@ public class SubjectController {
 
     private final InputValidator inputValidator;
 
+    private final SubjectService subjectService;
+
     @TelegramRequestMapping(from = State.ADD_NEW_SUBJECT, to = State.MENU_TEACHER)
     @AllowedRoles(Role.TEACHER)
     public void addNewSubject(TelegramRequest req, TelegramResponse resp) {
-        System.out.println("addNewSubject");
-        inputValidator.validateNewSubjectInput(req.getMessage());
+        String subjectRequest = req.getMessage();
+        inputValidator.validateNewSubjectInput(subjectRequest);
+        subjectService.addSubject(subjectRequest, req.getUser());
+        SendMessage message = SendMessage.builder()
+                .chatId(req.getUpdate().getMessage().getFrom().getId())
+                .text("Предмет успешно сохранен")
+                .build();
+        resp.setResponse(message);
     }
 }

@@ -112,7 +112,7 @@ public class StudentMenuController {
     private void createResponseGetAllSubjects(TelegramRequest req, TelegramResponse resp, List<List<String>> subjects) {
         SendMessage message = SendMessage.builder()
                 .chatId(TelegramUtil.getChatId(req.getUpdate()))
-                .text(subjectTransformer.transform(subjects))
+                .text(subjectTransformer.transformForGetAllSubjects(subjects))
                 .build();
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();

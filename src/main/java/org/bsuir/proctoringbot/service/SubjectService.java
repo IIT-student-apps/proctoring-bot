@@ -8,4 +8,6 @@ public interface SubjectService {
     List<List<String>> getAllSubjects(UserDetails userDetails);
 
     String getAllWorksType(UserDetails userDetails);
+
+    void addSubject(String subjectRequest, UserDetails userDetails);
 }
