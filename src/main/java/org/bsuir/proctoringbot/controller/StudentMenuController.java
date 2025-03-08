@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.bsuir.proctoringbot.model.Constants.*;
+import static org.bsuir.proctoringbot.util.Constants.*;
 
 @TelegramController
 @RequiredArgsConstructor
