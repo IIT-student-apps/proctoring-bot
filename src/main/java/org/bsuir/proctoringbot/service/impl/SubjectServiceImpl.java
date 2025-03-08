@@ -15,6 +15,8 @@ public class SubjectServiceImpl implements SubjectService {
 
     private final SpreadsheetsService spreadsheetsService;
 
+    private final SubjectTransformer subjectTransformer;
+
     @Override
     public List<List<String>> getAllSubjects(UserDetails userDetails) {
         String studentGroup = spreadsheetsService.getStudentGroup(userDetails);
@@ -24,5 +26,11 @@ public class SubjectServiceImpl implements SubjectService {
     @Override
     public String getAllWorksType(UserDetails userDetails) {
         return "";
+    }
+
+    @Override
+    public void addSubject(String subjectRequest, UserDetails userDetails) {
+        List<List<String>> subjects = subjectTransformer.transformForAddSubject(subjectRequest, userDetails);
+        spreadsheetsService.addNewSubject(subjects);
     }
 }

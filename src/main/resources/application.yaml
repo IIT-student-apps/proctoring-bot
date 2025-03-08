@@ -13,6 +13,7 @@ spring:
 bot:
   name: proctoring-bot
   token: <TOKEN>
+  email: <EMAIL>
 
 google:
   application:

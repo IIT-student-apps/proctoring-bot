@@ -1,5 +1,6 @@
 package org.bsuir.proctoringbot.service;
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import lombok.RequiredArgsConstructor;
@@ -7,6 +8,7 @@ import org.bsuir.proctoringbot.bot.security.Role;
 import org.bsuir.proctoringbot.bot.security.UserDetails;
 import org.bsuir.proctoringbot.bot.statemachine.State;
 import org.bsuir.proctoringbot.model.SimpleTelegramUser;
+import org.bsuir.proctoringbot.util.SpreadsheetsUtil;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.util.ArrayList;
@@ -23,7 +25,7 @@ public class SpreadsheetsService {
     private String studentsSheetId;
     private final Sheets sheets;
 
-    public Optional<UserDetails> findTeacherByUsername(String username){
+    public Optional<UserDetails> findTeacherByUsername(String username) {
         String range = "Teachers!A2:B";
 
         try {
@@ -49,7 +51,7 @@ public class SpreadsheetsService {
                 }
             }
 
-        } catch (Exception e){
+        } catch (Exception e) {
             return Optional.empty();
         }
 
@@ -147,29 +149,133 @@ public class SpreadsheetsService {
         return result;
     }
 
+    public void addNewSubject(List<List<String>> subjects) {
+        for (List<String> row : subjects) {
+            List<Object> rowAsObjects = new ArrayList<>(row);
+            boolean isUpdated = update("Subjects", "A2", "D", rowAsObjects, List.of(0, 1, 3));
+            if (!isUpdated) {
+                addToEnd("Subjects", "A2", "D", rowAsObjects);
+            }
+        }
+    }
+
+    public int isSheetPublic(String spreadsheetUrl) {
+        try {
+            String spreadsheetId = SpreadsheetsUtil.getSpreadsheetId(spreadsheetUrl);
+            String range = "A1";
+            sheets.spreadsheets().values()
+                    .get(spreadsheetId, range)
+                    .execute();
+            if (!SpreadsheetsUtil.isSpreadsheetOpenForRead(spreadsheetUrl)){
+                return 3;
+            }
+            return 0;
+        } catch (GoogleJsonResponseException e) {
+            if (e.getStatusCode() == 403) {
+                return 1;
+            }
+            if (e.getStatusCode() == 404) {
+                return 2;
+            }
+            throw new RuntimeException("Ошибка при проверке доступа к таблице: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new RuntimeException("Неизвестная ошибка: " + e.getMessage(), e);
+        }
+    }
+
+    private boolean addToEnd(String listName,
+                             String startCell,
+                             String endColumn,
+                             List<Object> row
+    ) {
+        String startColumn = startCell.replaceAll("\\d", "");
+        int startRow = Integer.parseInt(startCell.replaceAll("\\D", ""));
+        String range = listName + "!" + startCell + ":" + endColumn;
+        try {
+            ValueRange response = sheets.spreadsheets().values()
+                    .get(studentsSheetId, range)
+                    .execute();
+            List<List<Object>> values = response.getValues();
+            if (values == null) {
+                startRow = 2;
+            } else {
+                startRow = values.size() + 2;
+            }
+            String cell = listName + "!" + startColumn + startRow;
+            ValueRange body = new ValueRange().setValues(Collections.singletonList(row));
+            sheets.spreadsheets().values()
+                    .update(studentsSheetId, cell, body)
+                    .setValueInputOption("RAW")
+                    .execute();
+            System.out.println("Запись добавлена в конец.");
+            return true;
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка при добавлении данных", e);
+        }
+    }
+
+
+    private boolean update(String listName,
+                           String startCell,
+                           String endColumn,
+                           List<Object> row,
+                           List<Integer> indexesToCompare
+    ) {
+        String startColumn = startCell.replaceAll("\\d", "");
+        int startRow = Integer.parseInt(startCell.replaceAll("\\D", ""));
+        String range = listName + "!" + startCell + ":" + endColumn;
+        try {
+            ValueRange response = sheets.spreadsheets().values()
+                    .get(studentsSheetId, range)
+                    .execute();
+            List<List<Object>> values = response.getValues();
+            if (values == null || values.isEmpty()) {
+                System.out.println("Нет данных для обновления.");
+                return false;
+            }
+            for (int i = 0; i < values.size(); i++) {
+                List<Object> currentRow = values.get(i);
+                boolean match = true;
+                for (int index : indexesToCompare) {
+                    if (!currentRow.get(index).toString().trim().equals(row.get(index).toString().trim())) {
+                        match = false;
+                        break;
+                    }
+                }
+                if (match) {
+                    String cell = listName + "!" + startColumn + (i + startRow);
+                    ValueRange body = new ValueRange().setValues(Collections.singletonList(row));
+                    sheets.spreadsheets().values()
+                            .update(studentsSheetId, cell, body)
+                            .setValueInputOption("RAW")
+                            .execute();
+                    System.out.println("Запись обновлена.");
+                    return true;
+                }
+            }
+            System.out.println("Запись не найдена для обновления.");
+            return false;
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка при обновлении данных", e);
+        }
+    }
+
+
     private List<List<Object>> readWithOffset(String listName,
                                               String startCell,
                                               String endColumn,
                                               int offset,
                                               int limit) {
-        // Разбираем startCell (например, "A2" → столбец "A", строка 2)
         String startColumn = startCell.replaceAll("\\d", ""); // A
         int startRow = Integer.parseInt(startCell.replaceAll("\\D", "")); // 2
-
-        // Начальная и конечная строки
         int start = startRow + offset;
         int end = start + limit - 1;
-
-        // Формируем диапазон, например: "Students!A7:C16"
         String range = String.format("%s!%s%d:%s%d", listName, startColumn, start, endColumn, end);
-
         try {
             ValueRange response = sheets.spreadsheets().values()
                     .get(studentsSheetId, range)
                     .execute();
-
             return Optional.ofNullable(response.getValues()).orElse(Collections.emptyList());
-
         } catch (Exception e) {
             throw new RuntimeException("Ошибка при чтении данных с offset и limit", e);
         }
