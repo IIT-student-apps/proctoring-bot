@@ -9,6 +9,7 @@ import org.bsuir.proctoringbot.bot.statemachine.State;
 import org.bsuir.proctoringbot.model.SimpleTelegramUser;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -110,4 +111,67 @@ public class SpreadsheetsService {
         }
     }
 
+    public String getStudentGroup(UserDetails userDetails) {
+        int offset = 0;
+        int limit = 100;
+        List<List<Object>> values;
+        do {
+            values = readWithOffset("Students", "A2", "C", offset, limit);
+            offset += limit;
+            for (List<Object> row : values) {
+                if (!row.isEmpty() && row.size() < 3) {
+                    continue;
+                }
+                if (row.get(2).toString().equals(userDetails.getId().toString())) {
+                    return row.size() > 1 ? row.get(1).toString() : null;
+                }
+            }
+        } while (!values.isEmpty());
+        return null;
+    }
+
+    public List<List<String>> getAllSubjectsByGroup(String group) {
+        int offset = 0;
+        int limit = 100;
+        List<List<Object>> values;
+        List<List<String>> result = new ArrayList<>();
+        do {
+            values = readWithOffset("Subjects", "A2", "C", offset, limit);
+            offset += limit;
+            for (List<Object> row : values) {
+                if (!row.isEmpty() && row.get(1).toString().equals(group)) {
+                    result.add(List.of(row.get(0).toString(), row.get(2).toString()));
+                }
+            }
+        } while (!values.isEmpty());
+        return result;
+    }
+
+    private List<List<Object>> readWithOffset(String listName,
+                                              String startCell,
+                                              String endColumn,
+                                              int offset,
+                                              int limit) {
+        // Разбираем startCell (например, "A2" → столбец "A", строка 2)
+        String startColumn = startCell.replaceAll("\\d", ""); // A
+        int startRow = Integer.parseInt(startCell.replaceAll("\\D", "")); // 2
+
+        // Начальная и конечная строки
+        int start = startRow + offset;
+        int end = start + limit - 1;
+
+        // Формируем диапазон, например: "Students!A7:C16"
+        String range = String.format("%s!%s%d:%s%d", listName, startColumn, start, endColumn, end);
+
+        try {
+            ValueRange response = sheets.spreadsheets().values()
+                    .get(studentsSheetId, range)
+                    .execute();
+
+            return Optional.ofNullable(response.getValues()).orElse(Collections.emptyList());
+
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка при чтении данных с offset и limit", e);
+        }
+    }
 }

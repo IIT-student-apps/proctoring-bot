@@ -16,10 +16,14 @@ public class TelegramRequest {
     private String message;
 
     public static TelegramRequest from(Update update, UserDetails user) {
+        String message = "";
+        if (update.hasMessage()) {
+            message = update.getMessage().getText();
+        }
         return TelegramRequest.builder()
                 .update(update)
                 .user(user)
-                .message(update.getMessage().getText())
+                .message(message)
                 .build();
     }
 

@@ -6,6 +6,7 @@ import org.bsuir.proctoringbot.bot.dispatcher.TelegramRequest;
 import org.bsuir.proctoringbot.bot.dispatcher.TelegramResponse;
 import org.bsuir.proctoringbot.bot.dispatcher.TelegramUpdateDispatcher;
 import org.bsuir.proctoringbot.bot.exception.TelegramMessageException;
+import org.bsuir.proctoringbot.util.TelegramUtil;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
@@ -42,14 +43,14 @@ public class TelegramBot extends TelegramLongPollingBot {
     public void onUpdateReceived(Update update) {
         try {
             TelegramRequest request = TelegramRequest.from(update, null);
-            TelegramResponse response = TelegramResponse.defaultMessage(update.getMessage().getFrom().getId());
+            TelegramResponse response = TelegramResponse.defaultMessage(TelegramUtil.getChatId(update));
             telegramUpdateDispatcher.dispatch(request, response);
 
             sendMessage(response.getResponse());
 
         } catch (TelegramMessageException ex) {
             sendMessage(SendMessage.builder()
-                    .chatId(update.getMessage().getChatId())
+                    .chatId(TelegramUtil.getChatId(update))
                     .text(ex.getMessage())
                     .build());
         }
@@ -67,5 +68,4 @@ public class TelegramBot extends TelegramLongPollingBot {
             log.warn("Failed to send message: {}", method.toString());
         }
     }
-
 }
