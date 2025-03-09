@@ -4,6 +4,7 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.bsuir.proctoringbot.bot.security.Role;
 import org.bsuir.proctoringbot.bot.security.UserDetails;
 import org.bsuir.proctoringbot.bot.statemachine.State;
@@ -16,6 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @RequiredArgsConstructor
 public class SpreadsheetsService {
 
@@ -131,6 +133,7 @@ public class SpreadsheetsService {
         } while (!values.isEmpty());
         return null;
     }
+
 
     public List<List<String>> getAllSubjectsByGroup(String group) {
         int offset = 0;
@@ -262,6 +265,33 @@ public class SpreadsheetsService {
         }
     }
 
+    public List<Long> getStudentsTgIdsByGroup(String group){
+        String listName = "Students";
+        String startCell = "A2";
+        String endColumn = "C";
+        int filterColumnPosition = 1;
+        int studentIdColumnPosition = 2;
+        List<List<String>> rowsByFilter = findRowsByFilter(listName,
+                startCell,
+                endColumn,
+                List.of(filterColumnPosition),
+                List.of(group));
+
+        List<Long> studentsIds = new ArrayList<>();
+
+        for (List<String > row : rowsByFilter) {
+            if (row.size() < 3){
+                continue;
+            }
+            try {
+                String id = row.get(studentIdColumnPosition);
+                studentsIds.add(Long.parseLong(id));
+            } catch (NumberFormatException e){
+                log.warn("wrong student id in list {}: {}", listName, e.getMessage());
+            }
+        }
+        return studentsIds;
+    }
 
     public List<String> getTeachersGroups(UserDetails userDetails) {
         String listName = "Subjects";
