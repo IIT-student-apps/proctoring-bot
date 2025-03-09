@@ -41,6 +41,9 @@ public class TestServiceImpl implements TestService {
         String name = matcher.group(1);
         String url = matcher.group(2);
         String group = matcher.group(3);
+        if (testRepository.existsByName(name)){
+            throw new IllegalArgumentException("Тест с таким названием уже существует, попробуйте другое");
+        }
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern(TIME_FORMAT);
             LocalDateTime startTime = null;

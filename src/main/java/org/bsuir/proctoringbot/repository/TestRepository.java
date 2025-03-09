@@ -9,4 +9,6 @@ public interface TestRepository extends JpaRepository<Test, Integer> {
 
     List<Test> findAllByAuthorId(Long authorId);
 
+    boolean existsByName(String name);
+
 }
