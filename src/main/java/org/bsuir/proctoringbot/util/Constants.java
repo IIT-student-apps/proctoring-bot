@@ -23,4 +23,15 @@ public class Constants {
     public static final String GET_RESULTS_STUDENT_MENU_BUTTON_CALLBACK = "button3_pressed";
     public static final String TAKE_TEST_STUDENT_MENU_BUTTON_CALLBACK = "button4_pressed";
 
+    //меню тестов
+    public static final String ADD_TEST_INFO_BUTTON = "Добавить тест";
+    public static final String EDIT_TEST_INFO_BUTTON = "Редактировать тест";
+    public static final String DELETE_TEST_INFO_BUTTON = "Удалить тест";
+    public static final String ACTIVATE_TEST_BUTTON = "Активировать тест";
+
+    public static final String ADD_TEST_INFO_BUTTON_CALLBACK = "Добавить тест callback";
+    public static final String EDIT_TEST_INFO_BUTTON_CALLBACK = "Редактировать тест callback";
+    public static final String DELETE_TEST_INFO_BUTTON_CALLBACK = "Удалить тест callback";
+    public static final String ACTIVATE_TEST_BUTTON_CALLBACK = "Активировать тест callback";
+
 }

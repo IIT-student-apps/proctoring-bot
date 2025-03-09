@@ -149,6 +149,8 @@ public class SpreadsheetsService {
         return result;
     }
 
+
+
     public void addNewSubject(List<List<String>> subjects) {
         for (List<String> row : subjects) {
             List<Object> rowAsObjects = new ArrayList<>(row);
@@ -261,6 +263,55 @@ public class SpreadsheetsService {
     }
 
 
+    public List<String> getTeachersGroups(UserDetails userDetails) {
+        String listName = "Subjects";
+        String startCell = "A2";
+        String endColumn = "D";
+        int filterColumnPosition = 3;
+        int groupColumnPosition = 1;
+        List<List<String>> rowsByFilter = findRowsByFilter(listName,
+                startCell,
+                endColumn,
+                List.of(filterColumnPosition),
+                List.of(userDetails.getUsername()));
+        List<String> teachersGroups = new ArrayList<>();
+        for (List<String> strings : rowsByFilter) {
+            teachersGroups.add(strings.get(groupColumnPosition));
+        }
+        return teachersGroups;
+    }
+
+    private List<List<String>> findRowsByFilter(String listName,
+                                                String startCell,
+                                                String endColumn,
+                                                List<Integer> filterColumnsPositions,
+                                                List<String> filterParams) {
+        String range = listName + "!" + startCell + ":" + endColumn;
+        List<List<String>> results = new ArrayList<>();
+        if (filterColumnsPositions.size() != filterParams.size()) {
+            throw new RuntimeException("number of positions and params are not equal");
+        }
+        try {
+            ValueRange response = sheets.spreadsheets().values()
+                    .get(studentsSheetId, range)
+                    .execute();
+
+            List<List<Object>> rows = response.getValues();
+            int maxColumnPosition = filterColumnsPositions.stream().max(Integer::compareTo).orElse(0);
+            for (List<Object> row : rows) {
+                if (row.size() < maxColumnPosition) continue;
+                for (Integer columnPosition : filterColumnsPositions) {
+                    if (row.get(columnPosition).equals(filterParams.get(filterColumnsPositions.indexOf(columnPosition)))) {
+                        results.add(row.stream().map(Object::toString).toList());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+        return results;
+    }
+
     private List<List<Object>> readWithOffset(String listName,
                                               String startCell,
                                               String endColumn,
@@ -280,4 +331,5 @@ public class SpreadsheetsService {
             throw new RuntimeException("Ошибка при чтении данных с offset и limit", e);
         }
     }
+
 }

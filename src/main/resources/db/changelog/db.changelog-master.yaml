@@ -1,3 +1,5 @@
 databaseChangeLog:
   - include:
       file: db/changelog/1__create_table_user_details.sql
+  - include:
+      file: db/changelog/2__create_table_tests_info.sql

@@ -9,6 +9,7 @@ import org.bsuir.proctoringbot.bot.security.AllowedRoles;
 import org.bsuir.proctoringbot.bot.security.Role;
 import org.bsuir.proctoringbot.bot.statemachine.State;
 import org.bsuir.proctoringbot.service.StudentService;
+import org.bsuir.proctoringbot.util.TelegramUtil;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
@@ -56,7 +57,7 @@ public class StartController {
     @AllowedRoles(Role.USER)
     public void helloUser(TelegramRequest req, TelegramResponse resp){
         SendMessage message = SendMessage.builder()
-                .chatId(req.getUpdate().getMessage().getFrom().getId())
+                .chatId(TelegramUtil.getChatId(req.getUpdate()))
                 .text("Чтобы продолжить как студент введите 'ФИО и номер группы'")
                 .build();
 
@@ -68,7 +69,7 @@ public class StartController {
     public void registerStudent(TelegramRequest req, TelegramResponse resp){
         studentService.registerUserByNameAndGroup(req.getUser(), req.getMessage());
         resp.setResponse(SendMessage.builder()
-                .chatId(req.getUpdate().getMessage().getFrom().getId())
+                .chatId(TelegramUtil.getChatId(req.getUpdate()))
                 .text("Вы успешно зарегистрированы как студент")
                 .build());
     }

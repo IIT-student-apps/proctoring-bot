@@ -41,11 +41,21 @@ public class TeacherMenuController {
             WORK_WITH_TESTS_BUTTON_MESSAGE, WORK_WITH_TESTS_BUTTON_CALLBACK
     );
 
+    private static final Map<String, String> TEST_MENU_BUTTONS_FIRST_ROW = Map.of(
+            ADD_TEST_INFO_BUTTON, ADD_TEST_INFO_BUTTON_CALLBACK,
+            EDIT_TEST_INFO_BUTTON, EDIT_TEST_INFO_BUTTON_CALLBACK
+    );
+
+    private static final Map<String, String> TEST_MENU_BUTTONS_SECOND_ROW = Map.of(
+            DELETE_TEST_INFO_BUTTON, DELETE_TEST_INFO_BUTTON_CALLBACK,
+            ACTIVATE_TEST_BUTTON, ACTIVATE_TEST_BUTTON_CALLBACK
+    );
+
     private final UserService dbUserService;
 
     @TelegramRequestMapping(from = State.MENU_TEACHER, to = State.PICK_TEACHER_MENU_ITEM)
     @AllowedRoles(Role.TEACHER)
-    public void menu(TelegramRequest req, TelegramResponse resp) {
+    public void menu(TelegramRequest req, TelegramResponse resp){
 
         SendMessage message = SendMessage.builder()
                 .chatId(req.getUpdate().getMessage().getFrom().getId())
@@ -86,6 +96,7 @@ public class TeacherMenuController {
         message.setReplyMarkup(inlineKeyboardMarkup);
 
         resp.setResponse(message);
+
     }
 
     @TelegramRequestMapping(from = State.PICK_TEACHER_MENU_ITEM)
@@ -100,6 +111,10 @@ public class TeacherMenuController {
                     createResponseAddSubject(req, resp);
                     user.setState(State.ADD_NEW_SUBJECT);
                 }
+                case WORK_WITH_TESTS_BUTTON_CALLBACK -> {
+                    user.setState(State.PICK_TESTS_MENU_ITEM);
+                    createTestMenuResponse(req, resp);
+                }
                 default -> throw new TelegramMessageException("Для такой кнопки нет функционала");
             }
             dbUserService.updateUser(user);
@@ -110,6 +125,37 @@ public class TeacherMenuController {
         }
     }
 
+    private void createTestMenuResponse(TelegramRequest req, TelegramResponse resp) {
+        SendMessage message = SendMessage.builder()
+                .chatId(TelegramUtil.getChatId(req.getUpdate()))
+                .text("Меню тестов:")
+                .build();
+
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> firstLine = new ArrayList<>();
+        List<InlineKeyboardButton> secondLine = new ArrayList<>();
+
+        TEST_MENU_BUTTONS_FIRST_ROW.forEach((buttonText, buttonCallback) -> {
+            InlineKeyboardButton button = new InlineKeyboardButton(buttonText);
+            button.setCallbackData(buttonCallback);
+            firstLine.add(button);
+        });
+
+        TEST_MENU_BUTTONS_SECOND_ROW.forEach((buttonText, buttonCallback) -> {
+            InlineKeyboardButton button = new InlineKeyboardButton(buttonText);
+            button.setCallbackData(buttonCallback);
+            secondLine.add(button);
+        });
+
+        rowsInline.add(firstLine);
+        rowsInline.add(secondLine);
+
+        inlineKeyboardMarkup.setKeyboard(rowsInline);
+        message.setReplyMarkup(inlineKeyboardMarkup);
+        resp.setResponse(message);
+    }
+
     private void createResponseAddSubject(TelegramRequest req, TelegramResponse resp) {
         SendMessage message = SendMessage.builder()
                 .chatId(TelegramUtil.getChatId(req.getUpdate()))
@@ -118,4 +164,5 @@ public class TeacherMenuController {
                 .build();
         resp.setResponse(message);
     }
+
 }
