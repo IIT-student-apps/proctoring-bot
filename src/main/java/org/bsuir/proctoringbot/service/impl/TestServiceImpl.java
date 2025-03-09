@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -52,6 +51,9 @@ public class TestServiceImpl implements TestService {
             }
             if (!isUserCanAddTestToGroup(userDetails, group)){
                 throw new IllegalArgumentException("Вы не ведёте предметы у такой группы");
+            }
+            if (startTime != null && !startTime.isAfter(LocalDateTime.now())){
+                throw new IllegalArgumentException("Время начала теста уже прошло");
             }
             Test test = Test.builder()
                     .author((SimpleTelegramUser) userDetails)
