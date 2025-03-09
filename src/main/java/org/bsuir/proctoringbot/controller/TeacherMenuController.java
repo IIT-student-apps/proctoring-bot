@@ -12,9 +12,6 @@ import org.bsuir.proctoringbot.bot.security.Role;
 import org.bsuir.proctoringbot.bot.security.UserDetails;
 import org.bsuir.proctoringbot.bot.security.UserService;
 import org.bsuir.proctoringbot.bot.statemachine.State;
-import org.bsuir.proctoringbot.service.TestService;
-import org.bsuir.proctoringbot.service.impl.TestServiceImpl;
-import org.bsuir.proctoringbot.util.TelegramUtil;
 import org.bsuir.proctoringbot.util.TelegramUtil;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
@@ -55,7 +52,6 @@ public class TeacherMenuController {
     );
 
     private final UserService dbUserService;
-    private final TestService testServiceImpl;
 
     @TelegramRequestMapping(from = State.MENU_TEACHER, to = State.PICK_TEACHER_MENU_ITEM)
     @AllowedRoles(Role.TEACHER)
@@ -111,6 +107,10 @@ public class TeacherMenuController {
             String callbackData = callbackQuery.getData();
             UserDetails user = req.getUser();
             switch (callbackData) {
+                case ADD_SUBJECT_BUTTON_CALLBACK -> {
+                    createResponseAddSubject(req, resp);
+                    user.setState(State.ADD_NEW_SUBJECT);
+                }
                 case WORK_WITH_TESTS_BUTTON_CALLBACK -> {
                     user.setState(State.PICK_TESTS_MENU_ITEM);
                     createTestMenuResponse(req, resp);
@@ -154,28 +154,6 @@ public class TeacherMenuController {
         inlineKeyboardMarkup.setKeyboard(rowsInline);
         message.setReplyMarkup(inlineKeyboardMarkup);
         resp.setResponse(message);
-    }
-
-    @TelegramRequestMapping(from = State.PICK_TEACHER_MENU_ITEM)
-    @AllowedRoles(Role.TEACHER)
-    public void pickMenuItem(TelegramRequest req, TelegramResponse resp) {
-        if (req.getUpdate().hasCallbackQuery()) {
-            CallbackQuery callbackQuery = req.getUpdate().getCallbackQuery();
-            String callbackData = callbackQuery.getData();
-            UserDetails user = req.getUser();
-            switch (callbackData) {
-                case ADD_SUBJECT_BUTTON_CALLBACK -> {
-                    createResponseAddSubject(req, resp);
-                    user.setState(State.ADD_NEW_SUBJECT);
-                }
-                default -> throw new TelegramMessageException("Для такой кнопки нет функционала");
-            }
-            dbUserService.updateUser(user);
-        } else {
-            UserDetails user = req.getUser();
-            user.setState(State.MENU_TEACHER);
-            dbUserService.updateUser(user);
-        }
     }
 
     private void createResponseAddSubject(TelegramRequest req, TelegramResponse resp) {

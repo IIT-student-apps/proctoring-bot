@@ -16,7 +16,7 @@ import org.bsuir.proctoringbot.util.TelegramUtil;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 
-import static org.bsuir.proctoringbot.model.Constants.ADD_TEST_INFO_BUTTON_CALLBACK;
+import static org.bsuir.proctoringbot.util.Constants.ADD_TEST_INFO_BUTTON_CALLBACK;
 
 @TelegramController
 @RequiredArgsConstructor
