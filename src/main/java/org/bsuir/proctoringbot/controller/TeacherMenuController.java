@@ -15,6 +15,7 @@ import org.bsuir.proctoringbot.bot.statemachine.State;
 import org.bsuir.proctoringbot.service.TestService;
 import org.bsuir.proctoringbot.service.impl.TestServiceImpl;
 import org.bsuir.proctoringbot.util.TelegramUtil;
+import org.bsuir.proctoringbot.util.TelegramUtil;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -24,13 +25,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.bsuir.proctoringbot.model.Constants.*;
+import static org.bsuir.proctoringbot.util.Constants.*;
 
 @TelegramController
 @RequiredArgsConstructor
 public class TeacherMenuController {
 
     private static final Map<String, String> FIRST_ROW_BUTTONS = Map.of(
+            ADD_SUBJECT_BUTTON_MESSAGE, ADD_SUBJECT_BUTTON_CALLBACK,
             UPDATE_SUBJECT_INFO_BUTTON_MESSAGE, UPDATE_SUBJECT_INFO_BUTTON_CALLBACK
     );
 
@@ -57,11 +59,11 @@ public class TeacherMenuController {
 
     @TelegramRequestMapping(from = State.MENU_TEACHER, to = State.PICK_TEACHER_MENU_ITEM)
     @AllowedRoles(Role.TEACHER)
-    public void menu(TelegramRequest req, TelegramResponse resp) {
+    public void menu(TelegramRequest req, TelegramResponse resp){
 
         SendMessage message = SendMessage.builder()
                 .chatId(req.getUpdate().getMessage().getFrom().getId())
-                .text("Добро пожаловать!!!")
+                .text("Меню:")
                 .build();
 
         //панелька
@@ -95,7 +97,6 @@ public class TeacherMenuController {
         rowsInline.add(thirdRowButtons);
         inlineKeyboardMarkup.setKeyboard(rowsInline);
 
-        message.setText("Меню:");
         message.setReplyMarkup(inlineKeyboardMarkup);
 
         resp.setResponse(message);
@@ -152,6 +153,37 @@ public class TeacherMenuController {
 
         inlineKeyboardMarkup.setKeyboard(rowsInline);
         message.setReplyMarkup(inlineKeyboardMarkup);
+        resp.setResponse(message);
+    }
+
+    @TelegramRequestMapping(from = State.PICK_TEACHER_MENU_ITEM)
+    @AllowedRoles(Role.TEACHER)
+    public void pickMenuItem(TelegramRequest req, TelegramResponse resp) {
+        if (req.getUpdate().hasCallbackQuery()) {
+            CallbackQuery callbackQuery = req.getUpdate().getCallbackQuery();
+            String callbackData = callbackQuery.getData();
+            UserDetails user = req.getUser();
+            switch (callbackData) {
+                case ADD_SUBJECT_BUTTON_CALLBACK -> {
+                    createResponseAddSubject(req, resp);
+                    user.setState(State.ADD_NEW_SUBJECT);
+                }
+                default -> throw new TelegramMessageException("Для такой кнопки нет функционала");
+            }
+            dbUserService.updateUser(user);
+        } else {
+            UserDetails user = req.getUser();
+            user.setState(State.MENU_TEACHER);
+            dbUserService.updateUser(user);
+        }
+    }
+
+    private void createResponseAddSubject(TelegramRequest req, TelegramResponse resp) {
+        SendMessage message = SendMessage.builder()
+                .chatId(TelegramUtil.getChatId(req.getUpdate()))
+                .text("Введите название предмета, ссылку на гугл таблицу и группы, у которых будете вести предмет\n" +
+                        "Пример: ОМИС, https://docs.google.com/spreadsheets/d/1Cr, 221701, 221702, 221703")
+                .build();
         resp.setResponse(message);
     }
 
