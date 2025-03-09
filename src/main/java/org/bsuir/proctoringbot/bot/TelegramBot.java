@@ -61,6 +61,13 @@ public class TelegramBot extends TelegramLongPollingBot {
         return botName;
     }
 
+    public void sendNotification(Long chatId, String message){
+        sendMessage(SendMessage.builder()
+                .chatId(chatId)
+                .text(message)
+                .build());
+    }
+
     private void sendMessage(BotApiMethod<?> method){
         try {
             execute(method);

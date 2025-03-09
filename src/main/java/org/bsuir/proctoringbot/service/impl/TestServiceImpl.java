@@ -8,6 +8,7 @@ import org.bsuir.proctoringbot.repository.TestRepository;
 import org.bsuir.proctoringbot.service.SpreadsheetsService;
 import org.bsuir.proctoringbot.service.TestService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -18,6 +19,7 @@ import java.util.regex.Pattern;
 
 @RequiredArgsConstructor
 @Service
+@Transactional
 public class TestServiceImpl implements TestService {
 
     private static final Pattern TEST_CREATION_PATTERN = Pattern.compile("^([^,]+),\\s*(https?://\\S+),\\s*(\\d+)(?:,\\s*(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}))?$");
