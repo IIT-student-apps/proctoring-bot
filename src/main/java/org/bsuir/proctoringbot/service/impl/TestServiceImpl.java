@@ -2,6 +2,7 @@ package org.bsuir.proctoringbot.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.bsuir.proctoringbot.bot.security.UserDetails;
+import org.bsuir.proctoringbot.jobs.TestStartNotificationJobService;
 import org.bsuir.proctoringbot.model.SimpleTelegramUser;
 import org.bsuir.proctoringbot.model.Test;
 import org.bsuir.proctoringbot.repository.TestRepository;
@@ -27,10 +28,10 @@ public class TestServiceImpl implements TestService {
 
     private final TestRepository testRepository;
     private final SpreadsheetsService spreadsheetsService;
+    private final TestStartNotificationJobService testStartNotificationJobService;
 
-    @Override
-    public List<Test> getAllTests(UserDetails userDetails) {
-        return testRepository.findAllByAuthorId(userDetails.getId());
+    public List<Test> getAllUnactivatedTests(UserDetails userDetails) {
+        return testRepository.findAllByAuthorIdAndStartTimeIsNull(userDetails.getId());
     }
 
     @Override
@@ -68,6 +69,13 @@ public class TestServiceImpl implements TestService {
         } catch (DateTimeParseException e){
             throw new IllegalArgumentException("Время начала указано неверно");
         }
+    }
+
+    @Override
+    public void activateTest(UserDetails userDetails, String testName) {
+        Test test = testRepository.findByName(testName)
+                        .orElseThrow(() -> new IllegalArgumentException("Такого теста не существует"));
+        testStartNotificationJobService.notifyManually(test);
     }
 
     private boolean isUserCanAddTestToGroup(UserDetails userDetails, String groupNumber){

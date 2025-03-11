@@ -23,17 +23,25 @@ public class TestStartNotificationJobService {
 
     private static final String TEST_START_NOTIFICATION_MESSAGE_PATTERN = "Преподаватель %s, начал тест '%s' по ссылке: %s";
 
-    public void execute() {
+    public void notifyAutomatically() {
         Iterable<Test> allByStartTime = testRepository.findAllByStartTime(LocalDateTime.now()
                 .truncatedTo(ChronoUnit.MINUTES));
         for (Test test : allByStartTime) {
-            String teacherName = test.getAuthor().getName();
-            String testName = test.getName();
-            String url = test.getUrl();
-            List<Long> studentsTgIdsByGroup = spreadsheetsService.getStudentsTgIdsByGroup(test.getGroupNumber());
-            for (Long id : studentsTgIdsByGroup) {
-                notifyUser(id, teacherName, testName, url);
-            }
+            makeNotification(test);
+        }
+    }
+
+    public void notifyManually(Test test){
+        makeNotification(test);
+    }
+
+    private void makeNotification(Test test){
+        List<Long> studentsTgIdsByGroup = spreadsheetsService.getStudentsTgIdsByGroup(test.getGroupNumber());
+        String teacherName = test.getAuthor().getName();
+        String testName = test.getName();
+        String url = test.getUrl();
+        for (Long id : studentsTgIdsByGroup) {
+            notifyUser(id, teacherName, testName, url);
         }
     }
 

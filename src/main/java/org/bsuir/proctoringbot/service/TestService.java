@@ -7,8 +7,10 @@ import java.util.List;
 
 public interface TestService {
 
-    List<Test> getAllTests(UserDetails userDetails);
+    List<Test> getAllUnactivatedTests(UserDetails userDetails);
 
     void addTest(UserDetails userDetails, String message);
+
+    void activateTest(UserDetails userDetails, String testName);
 
 }
