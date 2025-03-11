@@ -55,7 +55,7 @@ public class TeacherMenuController {
 
     @TelegramRequestMapping(from = State.MENU_TEACHER, to = State.PICK_TEACHER_MENU_ITEM)
     @AllowedRoles(Role.TEACHER)
-    public void menu(TelegramRequest req, TelegramResponse resp){
+    public void startMenu(TelegramRequest req, TelegramResponse resp){
 
         SendMessage message = SendMessage.builder()
                 .chatId(req.getUpdate().getMessage().getFrom().getId())
@@ -101,7 +101,7 @@ public class TeacherMenuController {
 
     @TelegramRequestMapping(from = State.PICK_TEACHER_MENU_ITEM)
     @AllowedRoles(Role.TEACHER)
-    public void pickMenuItem(TelegramRequest req, TelegramResponse resp) {
+    public void pickStartMenuItem(TelegramRequest req, TelegramResponse resp) {
         if (req.getUpdate().hasCallbackQuery()) {
             CallbackQuery callbackQuery = req.getUpdate().getCallbackQuery();
             String callbackData = callbackQuery.getData();
@@ -124,7 +124,7 @@ public class TeacherMenuController {
             dbUserService.updateUser(user);
         }
     }
-
+    
     private void createTestMenuResponse(TelegramRequest req, TelegramResponse resp) {
         SendMessage message = SendMessage.builder()
                 .chatId(TelegramUtil.getChatId(req.getUpdate()))
