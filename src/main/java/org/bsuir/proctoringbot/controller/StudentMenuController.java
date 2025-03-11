@@ -11,6 +11,7 @@ import org.bsuir.proctoringbot.bot.security.Role;
 import org.bsuir.proctoringbot.bot.security.UserDetails;
 import org.bsuir.proctoringbot.bot.security.UserService;
 import org.bsuir.proctoringbot.bot.statemachine.State;
+import org.bsuir.proctoringbot.service.IntermediateStateService;
 import org.bsuir.proctoringbot.service.SubjectService;
 import org.bsuir.proctoringbot.service.TestService;
 import org.bsuir.proctoringbot.transformer.SubjectTransformer;
@@ -42,6 +43,8 @@ public class StudentMenuController {
     private final UserService dbUserService;
 
     private final TestService testService;
+
+    private final IntermediateStateService intermediateStateService;
 
     private final SubjectService subjectService;
 
