@@ -102,7 +102,7 @@ public class StudentMenuController {
                 }
                 case SEND_WORK_STUDENT_MENU_BUTTON_CALLBACK -> subjectService.getAllWorksType(user);
                 case GET_RESULTS_STUDENT_MENU_BUTTON_CALLBACK -> subjectService.getAllSubjects(user);
-                case TAKE_TEST_STUDENT_MENU_BUTTON_CALLBACK -> testService.getAllTests(user);
+                case TAKE_TEST_STUDENT_MENU_BUTTON_CALLBACK -> testService.getAllUnactivatedTests(user);
                 default -> throw new TelegramMessageException("Для такой кнопки нет функционала");
             }
         } else {

@@ -7,10 +7,13 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface TestRepository extends JpaRepository<Test, Integer> {
 
-    List<Test> findAllByAuthorId(Long authorId);
+    List<Test> findAllByAuthorIdAndStartTimeIsNull(Long authorId);
+
+    Optional<Test> findByName(String name);
 
     boolean existsByName(String name);
 

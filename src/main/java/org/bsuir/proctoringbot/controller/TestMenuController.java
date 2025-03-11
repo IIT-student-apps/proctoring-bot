@@ -11,11 +11,19 @@ import org.bsuir.proctoringbot.bot.security.Role;
 import org.bsuir.proctoringbot.bot.security.UserDetails;
 import org.bsuir.proctoringbot.bot.security.UserService;
 import org.bsuir.proctoringbot.bot.statemachine.State;
+import org.bsuir.proctoringbot.model.Test;
 import org.bsuir.proctoringbot.service.TestService;
 import org.bsuir.proctoringbot.util.TelegramUtil;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static org.bsuir.proctoringbot.util.Constants.ACTIVATE_TEST_BUTTON_CALLBACK;
 import static org.bsuir.proctoringbot.util.Constants.ADD_TEST_INFO_BUTTON_CALLBACK;
 
 @TelegramController
@@ -41,6 +49,11 @@ public class TestMenuController {
                             .build());
                     user.setState(State.TEACHER_ADD_TEST);
                 }
+                case ACTIVATE_TEST_BUTTON_CALLBACK -> {
+                    user.setState(State.TEACHER_ACTIVATE_TEST);
+                    formActivateTestRequest(req, resp);
+                    user.setState(State.TEACHER_ACTIVATE_TEST);
+                }
                 default -> throw new TelegramMessageException("Для такой кнопки нет функционала");
             }
             dbUserService.updateUser(user);
@@ -59,6 +72,45 @@ public class TestMenuController {
                 .chatId(TelegramUtil.getChatId(req.getUpdate()))
                 .text("Тест успешно добавлен")
                 .build());
+    }
+
+    @TelegramRequestMapping(from = State.TEACHER_ACTIVATE_TEST, to = State.MENU_TEACHER)
+    @AllowedRoles(Role.TEACHER)
+    public void activateTest(TelegramRequest req, TelegramResponse resp) {
+        if (req.getUpdate().getCallbackQuery() == null){
+            throw new TelegramMessageException("Пожалуйста, выберите тест через кнопку");
+        }
+        testService.activateTest(req.getUser(), req.getUpdate().getCallbackQuery().getData());
+        resp.setResponse(SendMessage.builder()
+                .chatId(TelegramUtil.getChatId(req.getUpdate()))
+                .text("Тест успешно активирован")
+                .build());
+    }
+
+    private void formActivateTestRequest(TelegramRequest req, TelegramResponse resp){
+        List<Test> tests = testService.getAllUnactivatedTests(req.getUser());
+        SendMessage message = SendMessage.builder()
+                .chatId(TelegramUtil.getChatId(req.getUpdate()))
+                .text("Выберите тест для активации:")
+                .build();
+
+        List<InlineKeyboardButton> buttons = new ArrayList<>();
+
+        for (Test test : tests) {
+            InlineKeyboardButton button = InlineKeyboardButton.builder()
+                    .text(test.getName())
+                    .callbackData(test.getName())
+                    .build();
+            buttons.add(button);
+        }
+
+        InlineKeyboardMarkup keyboard = InlineKeyboardMarkup.builder()
+                .keyboard(Collections.singletonList(buttons))
+                .build();
+
+        message.setReplyMarkup(keyboard);
+
+        resp.setResponse(message);
     }
 
 }
