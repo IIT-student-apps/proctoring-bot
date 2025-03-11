@@ -16,7 +16,7 @@ public class ScheduledJobsService {
     @Scheduled(cron = "${job.cron.test-start}")
     public void scheduleTestStartNotification(){
         log.info("Start test notification");
-        testStartNotificationJobService.execute();
+        testStartNotificationJobService.notifyAutomatically();
         log.info("Start test notification ended");
     }
 
