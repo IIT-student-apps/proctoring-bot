@@ -12,6 +12,7 @@ import org.bsuir.proctoringbot.bot.security.Role;
 import org.bsuir.proctoringbot.bot.security.UserDetails;
 import org.bsuir.proctoringbot.bot.security.UserService;
 import org.bsuir.proctoringbot.bot.statemachine.State;
+import org.bsuir.proctoringbot.service.SpreadsheetsService;
 import org.bsuir.proctoringbot.util.TelegramUtil;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
@@ -53,6 +54,8 @@ public class TeacherMenuController {
 
     private final UserService dbUserService;
 
+    private final SpreadsheetsService spreadsheetsService;
+
     @TelegramRequestMapping(from = State.MENU_TEACHER, to = State.PICK_TEACHER_MENU_ITEM)
     @AllowedRoles(Role.TEACHER)
     public void startMenu(TelegramRequest req, TelegramResponse resp){
@@ -85,7 +88,7 @@ public class TeacherMenuController {
         THIRD_ROW_BUTTONS.forEach((buttonText, buttonCallback) -> {
             InlineKeyboardButton button = new InlineKeyboardButton(buttonText);
             button.setCallbackData(buttonCallback);
-            secondRowButtons.add(button);
+            thirdRowButtons.add(button);
         });
 
         rowsInline.add(firstButtons);
@@ -115,6 +118,10 @@ public class TeacherMenuController {
                     user.setState(State.PICK_TESTS_MENU_ITEM);
                     createTestMenuResponse(req, resp);
                 }
+                case UPDATE_SUBJECT_INFO_BUTTON_CALLBACK ->{
+                    user.setState(State.GET_TEACHER_SUBJECTS);
+                    createGetAllSubjectsResponse(req, resp);
+                }
                 default -> throw new TelegramMessageException("Для такой кнопки нет функционала");
             }
             dbUserService.updateUser(user);
@@ -124,7 +131,32 @@ public class TeacherMenuController {
             dbUserService.updateUser(user);
         }
     }
-    
+
+    private void createGetAllSubjectsResponse(TelegramRequest req, TelegramResponse resp) {
+
+        List<String> teacherSubjects = spreadsheetsService.getTeacherSubjects(req.getUser());
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> buttons = new ArrayList<>();
+        teacherSubjects.forEach((subject) -> {
+            InlineKeyboardButton button = new InlineKeyboardButton(subject);
+            button.setCallbackData(subject);
+            buttons.add(button);
+        } );
+
+        buttons.forEach((button) -> {
+            rowsInline.add(List.of(button));
+        });
+        inlineKeyboardMarkup.setKeyboard(rowsInline);
+
+        SendMessage message = SendMessage.builder()
+                .chatId(TelegramUtil.getChatId(req.getUpdate()))
+                .text("Выберете предмет:")
+                .replyMarkup(inlineKeyboardMarkup)
+                .build();
+        resp.setResponse(message);
+    }
+
     private void createTestMenuResponse(TelegramRequest req, TelegramResponse resp) {
         SendMessage message = SendMessage.builder()
                 .chatId(TelegramUtil.getChatId(req.getUpdate()))

@@ -311,6 +311,24 @@ public class SpreadsheetsService {
         return teachersGroups;
     }
 
+    public List<String> getTeacherSubjects(UserDetails userDetails){
+        String listName = "Subjects";
+        String startCell = "A2";
+        String endColumn = "D";
+        int filterColumnPosition = 3;
+        int groupColumnPosition = 0;
+        List<List<String>> rowsByFilter = findRowsByFilter(listName,
+                startCell,
+                endColumn,
+                List.of(filterColumnPosition),
+                List.of(userDetails.getUsername()));
+        List<String> teachersSubjects = new ArrayList<>();
+        for (List<String> strings : rowsByFilter) {
+            teachersSubjects.add(strings.get(groupColumnPosition));
+        }
+        return teachersSubjects;
+    }
+
     private List<List<String>> findRowsByFilter(String listName,
                                                 String startCell,
                                                 String endColumn,
@@ -361,5 +379,7 @@ public class SpreadsheetsService {
             throw new RuntimeException("Ошибка при чтении данных с offset и limit", e);
         }
     }
+
+
 
 }
