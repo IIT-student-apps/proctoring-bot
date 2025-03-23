@@ -12,6 +12,8 @@ import org.bsuir.proctoringbot.bot.security.Role;
 import org.bsuir.proctoringbot.bot.security.UserDetails;
 import org.bsuir.proctoringbot.bot.security.UserService;
 import org.bsuir.proctoringbot.bot.statemachine.State;
+import org.bsuir.proctoringbot.model.IntermediateStateData;
+import org.bsuir.proctoringbot.service.IntermediateStateService;
 import org.bsuir.proctoringbot.service.SpreadsheetsService;
 import org.bsuir.proctoringbot.util.TelegramUtil;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -47,6 +49,18 @@ public class TeacherMenuController {
             EDIT_TEST_INFO_BUTTON, EDIT_TEST_INFO_BUTTON_CALLBACK
     );
 
+    private static final Map<String, String> SUBJECT_FIRST_MENU_BUTTONS = Map.of(
+            GET_WORKS_INFO, GET_WORKS_INFO_CALLBACK
+    );
+
+    private static final Map<String, String> SUBJECT_SECOND_MENU_BUTTONS = Map.of(
+            GET_MATERIALS_INFO, GET_MATERIALS_INFO_CALLBACK
+    );
+
+    private static final Map<String, String> SUBJECT_THIRD_MENU_BUTTONS = Map.of(
+            GET_LECTURES_INFO, GET_LECTURES_INFO_CALLBACK
+    );
+
     private static final Map<String, String> TEST_MENU_BUTTONS_SECOND_ROW = Map.of(
             DELETE_TEST_INFO_BUTTON, DELETE_TEST_INFO_BUTTON_CALLBACK,
             ACTIVATE_TEST_BUTTON, ACTIVATE_TEST_BUTTON_CALLBACK
@@ -55,6 +69,8 @@ public class TeacherMenuController {
     private final UserService dbUserService;
 
     private final SpreadsheetsService spreadsheetsService;
+
+    private final IntermediateStateService intermediateStateService;
 
     @TelegramRequestMapping(from = State.MENU_TEACHER, to = State.PICK_TEACHER_MENU_ITEM)
     @AllowedRoles(Role.TEACHER)
@@ -130,6 +146,45 @@ public class TeacherMenuController {
             user.setState(State.MENU_TEACHER);
             dbUserService.updateUser(user);
         }
+    }
+    @TelegramRequestMapping(from = State.GET_TEACHER_SUBJECTS, to = State.SUBJECT_TEACHER_UPDATE_MENU)
+    @AllowedRoles(Role.TEACHER)
+    public void subjectMenu(TelegramRequest req, TelegramResponse resp) {
+        SendMessage message = SendMessage.builder()
+                .chatId(TelegramUtil.getChatId(req.getUpdate()))
+                .text("Меню предметов:")
+                .build();
+        String subject = req.getUpdate().getCallbackQuery().getData();
+        intermediateStateService.updateIntermediateState(req.getUser(),
+                IntermediateStateData.builder()
+                        .pickedSubject(subject)
+                        .build());
+        InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> firstRowButtons = new ArrayList<>();
+        List<InlineKeyboardButton> secondRowButtons = new ArrayList<>();
+        List<InlineKeyboardButton> thirdRowButtons = new ArrayList<>();
+        SUBJECT_FIRST_MENU_BUTTONS.forEach((buttonText, buttonCallback) -> {
+            InlineKeyboardButton button = new InlineKeyboardButton(buttonText);
+            button.setCallbackData(buttonCallback);
+            firstRowButtons.add(button);
+        });
+        SUBJECT_SECOND_MENU_BUTTONS.forEach((buttonText, buttonCallback) -> {
+            InlineKeyboardButton button = new InlineKeyboardButton(buttonText);
+            button.setCallbackData(buttonCallback);
+            secondRowButtons.add(button);
+        });
+        SUBJECT_THIRD_MENU_BUTTONS.forEach((buttonText, buttonCallback) -> {
+            InlineKeyboardButton button = new InlineKeyboardButton(buttonText);
+            button.setCallbackData(buttonCallback);
+            thirdRowButtons.add(button);
+        });
+        rowsInline.add(firstRowButtons);
+        rowsInline.add(secondRowButtons);
+        rowsInline.add(thirdRowButtons);
+        keyboard.setKeyboard(rowsInline);
+        message.setReplyMarkup(keyboard);
+        resp.setResponse(message);
     }
 
     private void createGetAllSubjectsResponse(TelegramRequest req, TelegramResponse resp) {

@@ -8,6 +8,13 @@ public class Constants {
     public static final String WORK_WITH_TESTS_BUTTON_MESSAGE = "Работа с тестами";
     public static final String ADD_SUBJECT_BUTTON_MESSAGE = "Добавить предмет";
 
+    public static final String GET_WORKS_INFO = "Просмотр всех работ";
+    public static final String GET_WORKS_INFO_CALLBACK = "работы";
+    public static final String GET_MATERIALS_INFO = "Просмотр всех материалов";
+    public static final String GET_MATERIALS_INFO_CALLBACK = "материалы";
+    public static final String GET_LECTURES_INFO = "Просмотр всех лекций";
+    public static final String GET_LECTURES_INFO_CALLBACK = "лекции";
+
     public static final String UPDATE_SUBJECT_INFO_BUTTON_CALLBACK = "Обновить информацию о предмете";
     public static final String EDIT_LAB_WORK_BUTTON_CALLBACK = "Корректировка лабораторной работы";
     public static final String WORK_WITH_TESTS_BUTTON_CALLBACK = "Работа с тестами";
