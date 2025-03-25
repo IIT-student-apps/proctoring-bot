@@ -152,6 +152,26 @@ public class SpreadsheetsService {
         return result;
     }
 
+    public String getSubjectSpreadsheetURL(String subject, String group){
+        String listName = "Subjects";
+        String startCell = "A2";
+        String endColumn = "C";
+        int filterSubjectColumnPosition = 0;
+        int filterGroupColumnPosition = 1;
+        int urlColumnPosition = 2;
+        List<List<String>> rowsByFilter = findRowsByFilter(listName,
+                startCell,
+                endColumn,
+                List.of(filterSubjectColumnPosition, filterGroupColumnPosition),
+                List.of(subject, group));
+        for (List<String> strings : rowsByFilter) {
+            if (strings.size() >= urlColumnPosition + 1){
+                return strings.get(urlColumnPosition);
+            }
+        }
+        return "";
+    }
+
 
 
     public void addNewSubject(List<List<String>> subjects) {
@@ -329,6 +349,36 @@ public class SpreadsheetsService {
         return teachersSubjects;
     }
 
+    public List<String> getLabWorks(String spreadsheetId) {
+        String listName = "Лабораторные";
+        List<String> result = new ArrayList<>();
+
+        try {
+            String range = listName + "!A2:A";
+
+            ValueRange response = sheets.spreadsheets().values()
+                    .get(spreadsheetId, range)
+                    .execute();
+
+            List<List<Object>> values = response.getValues();
+
+            if (values == null || values.isEmpty()) {
+                return result;
+            }
+
+            for (List<Object> row : values) {
+                if (!row.isEmpty()) {
+                    result.add(row.get(0).toString());
+                }
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+
+        return result;
+    }
+
     private List<List<String>> findRowsByFilter(String listName,
                                                 String startCell,
                                                 String endColumn,
@@ -348,10 +398,15 @@ public class SpreadsheetsService {
             int maxColumnPosition = filterColumnsPositions.stream().max(Integer::compareTo).orElse(0);
             for (List<Object> row : rows) {
                 if (row.size() < maxColumnPosition) continue;
+                boolean isAgreedByFilter = true;
                 for (Integer columnPosition : filterColumnsPositions) {
-                    if (row.get(columnPosition).equals(filterParams.get(filterColumnsPositions.indexOf(columnPosition)))) {
-                        results.add(row.stream().map(Object::toString).toList());
+                    if (!row.get(columnPosition).equals(filterParams.get(filterColumnsPositions.indexOf(columnPosition)))) {
+                        isAgreedByFilter = false;
+                        break;
                     }
+                }
+                if (isAgreedByFilter){
+                    results.add(row.stream().map(Object::toString).toList());
                 }
             }
         } catch (Exception e) {
