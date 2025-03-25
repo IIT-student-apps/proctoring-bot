@@ -10,6 +10,8 @@ import org.bsuir.proctoringbot.repository.IntermediateStateRepository;
 import org.bsuir.proctoringbot.service.IntermediateStateService;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class IntermediateStateServiceImpl implements IntermediateStateService {
@@ -33,6 +35,11 @@ public class IntermediateStateServiceImpl implements IntermediateStateService {
                                         .build()
                         )
                 );
+    }
+
+    @Override
+    public Optional<IntermediateState> findIntermediateStateByUserId(Long userId) {
+        return intermediateStateRepository.findIntermediateStateByUserId(userId);
     }
 
     private IntermediateStateData buildIntermediateStateData(

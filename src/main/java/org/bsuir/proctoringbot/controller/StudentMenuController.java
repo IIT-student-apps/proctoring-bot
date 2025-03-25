@@ -105,6 +105,7 @@ public class StudentMenuController {
                 case TAKE_TEST_STUDENT_MENU_BUTTON_CALLBACK -> testService.getAllUnactivatedTests(user);
                 default -> throw new TelegramMessageException("Для такой кнопки нет функционала");
             }
+            dbUserService.updateUser(user);
         } else {
             UserDetails user = req.getUser();
             user.setState(State.MENU_STUDENT);

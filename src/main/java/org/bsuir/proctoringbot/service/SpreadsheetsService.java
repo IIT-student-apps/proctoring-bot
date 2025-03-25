@@ -329,6 +329,25 @@ public class SpreadsheetsService {
         return teachersSubjects;
     }
 
+    public List<List<String>> getAllLinks(String studentGroup, String studentSubject) {
+
+        String listName = "Subjects";
+        String startCell = "A2";
+        String endColumn = "C";
+        List<Integer> filterColumnPosition = List.of(0,1);
+        int tableURLColumnPosition = 2;
+        List<List<String>> rowsByFilter = findRowsByFilter(listName,
+                startCell,
+                endColumn,
+                filterColumnPosition,
+                List.of(studentSubject, studentGroup)
+        );
+
+        String spreadsheetId = SpreadsheetsUtil.getSpreadsheetId(rowsByFilter.get(0).get(0));
+
+        return new ArrayList<>();
+    }
+
     private List<List<String>> findRowsByFilter(String listName,
                                                 String startCell,
                                                 String endColumn,
