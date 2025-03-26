@@ -11,6 +11,7 @@ import org.bsuir.proctoringbot.bot.security.Role;
 import org.bsuir.proctoringbot.bot.security.UserDetails;
 import org.bsuir.proctoringbot.bot.security.UserService;
 import org.bsuir.proctoringbot.bot.statemachine.State;
+import org.bsuir.proctoringbot.model.IntermediateState;
 import org.bsuir.proctoringbot.model.IntermediateStateData;
 import org.bsuir.proctoringbot.service.IntermediateStateService;
 import org.bsuir.proctoringbot.service.SubjectService;
@@ -151,6 +152,51 @@ public class StudentMenuController {
         }
     }
 
+    @TelegramRequestMapping(from = State.PICK_LAB_WORK_STUDENT, to = State.STUDENT_SHARE_LAB_WORK_LINK)
+    @AllowedRoles(Role.STUDENT)
+    public void pickLabWorkNumber(TelegramRequest req, TelegramResponse resp) {
+        if (req.getUpdate().hasCallbackQuery()) {
+            CallbackQuery callbackQuery = req.getUpdate().getCallbackQuery();
+            String callbackData = callbackQuery.getData();
+            UserDetails user = req.getUser();
+            intermediateStateService.updateIntermediateState(
+                    user,
+                    IntermediateStateData.builder()
+                    .pickedLabWorkNumber(callbackData)
+                    .build()
+            );
+            resp.setResponse(SendMessage.builder()
+                    .chatId(TelegramUtil.getChatId(req.getUpdate()))
+                    .text("скиньте ссылку на лабораторную работу:")
+                    .build());
+        } else {
+            resp.setResponse(SendMessage.builder()
+                    .chatId(TelegramUtil.getChatId(req.getUpdate()))
+                    .text("выберите лабораторную, нажав кнопку")
+                    .build()
+            );
+        }
+    }
+
+    @TelegramRequestMapping(from = State.STUDENT_SHARE_LAB_WORK_LINK, to = State.MENU_STUDENT)
+    @AllowedRoles(Role.STUDENT)
+    public void sendLabWork(TelegramRequest req, TelegramResponse resp) {
+        if (req.getUpdate().hasMessage()) {
+            String link = req.getUpdate().getMessage().getText();
+
+            resp.setResponse(SendMessage.builder()
+                    .chatId(TelegramUtil.getChatId(req.getUpdate()))
+                    .text("скиньте ссылку на лабораторную работу:")
+                    .build());
+        } else {
+            resp.setResponse(SendMessage.builder()
+                    .chatId(TelegramUtil.getChatId(req.getUpdate()))
+                    .text("выберите лабораторную, нажав кнопку")
+                    .build()
+            );
+        }
+    }
+
     private void createResponseGetAllSubjects(TelegramRequest req, TelegramResponse resp, List<List<String>> subjects) {
         SendMessage message = SendMessage.builder()
                 .chatId(TelegramUtil.getChatId(req.getUpdate()))
@@ -170,4 +216,6 @@ public class StudentMenuController {
         message.setReplyMarkup(inlineKeyboardMarkup);
         resp.setResponse(message);
     }
+
+
 }

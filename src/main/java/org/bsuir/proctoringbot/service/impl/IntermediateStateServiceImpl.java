@@ -47,7 +47,7 @@ public class IntermediateStateServiceImpl implements IntermediateStateService {
             IntermediateStateData newState
     ) {
         return IntermediateStateData.builder()
-                .pickedWorkType(newState.getPickedWorkType() == null ? previousState.getPickedWorkType() : newState.getPickedWorkType())
+                .pickedLabWorkNumber(newState.getPickedLabWorkNumber() == null ? previousState.getPickedLabWorkNumber() : newState.getPickedLabWorkNumber())
                 .pickedSubject(newState.getPickedSubject() == null ? previousState.getPickedSubject() : newState.getPickedSubject())
                 .build();
     }
