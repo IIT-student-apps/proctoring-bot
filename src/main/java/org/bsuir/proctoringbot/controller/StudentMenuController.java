@@ -11,7 +11,6 @@ import org.bsuir.proctoringbot.bot.security.Role;
 import org.bsuir.proctoringbot.bot.security.UserDetails;
 import org.bsuir.proctoringbot.bot.security.UserService;
 import org.bsuir.proctoringbot.bot.statemachine.State;
-import org.bsuir.proctoringbot.model.IntermediateState;
 import org.bsuir.proctoringbot.model.IntermediateStateData;
 import org.bsuir.proctoringbot.service.IntermediateStateService;
 import org.bsuir.proctoringbot.service.SubjectService;
@@ -51,7 +50,6 @@ public class StudentMenuController {
     private final SubjectService subjectService;
 
     private final SubjectTransformer subjectTransformer;
-
 
     @TelegramRequestMapping(from = State.MENU_STUDENT, to = State.PICK_STUDENT_MENU_ITEM)
     @AllowedRoles(Role.STUDENT)
