@@ -41,4 +41,18 @@ public class Constants {
     public static final String DELETE_TEST_INFO_BUTTON_CALLBACK = "Удалить тест callback";
     public static final String ACTIVATE_TEST_BUTTON_CALLBACK = "Активировать тест callback";
 
+
+    public static final String MENU_FOR_LINK_BUTT0N = "Просмотреть полезные ссылки";
+    public static final String MENU_FOR_INFORMATION_ABOUT_LABS_BUTT0N = "Просмотреть ЛР";
+    public static final String MENU_FOR_LECTIONS_BUTT0N = "Просмотреть лекции";
+
+
+    public static final String MENU_FOR_LINK_BUTT0N_CALLBACK = "Просмотреть полезные ссылки callback";
+    public static final String MENU_FOR_INFORMATION_ABOUT_LABS_BUTT0N_CALLBACK = "Просмотреть ЛР callback";
+    public static final String MENU_FOR_LECTIONS_BUTT0N_CALLBACK = "Просмотреть лекции callback";
+
+
+
+
+
 }
