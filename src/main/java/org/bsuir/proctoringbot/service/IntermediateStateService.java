@@ -12,4 +12,5 @@ public interface IntermediateStateService {
 
     Optional<IntermediateState> findIntermediateStateByUserId(Long userId);
 
+    IntermediateState getIntermediateState(UserDetails userDetails);
 }

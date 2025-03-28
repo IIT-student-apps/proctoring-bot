@@ -25,8 +25,8 @@ google:
     name: ProctoringBot
   sheets:
     table-id: <TABLE_ID>
-    credentials:
-      path: src/main/resources/tokens/proctoringbot.json
+  credentials:
+    path: src/main/resources/tokens/proctoringbot.json
 
 job:
   cron:

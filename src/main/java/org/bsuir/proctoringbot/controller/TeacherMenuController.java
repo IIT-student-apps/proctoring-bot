@@ -81,7 +81,6 @@ public class TeacherMenuController {
                 .text("Меню:")
                 .build();
 
-        //панелька
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
 
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
