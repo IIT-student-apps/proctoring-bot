@@ -12,9 +12,7 @@ import org.bsuir.proctoringbot.bot.security.UserDetails;
 import org.bsuir.proctoringbot.bot.security.UserService;
 import org.bsuir.proctoringbot.bot.statemachine.State;
 import org.bsuir.proctoringbot.model.IntermediateStateData;
-import org.bsuir.proctoringbot.service.IntermediateStateService;
-import org.bsuir.proctoringbot.service.SubjectService;
-import org.bsuir.proctoringbot.service.TestService;
+import org.bsuir.proctoringbot.service.*;
 import org.bsuir.proctoringbot.transformer.SubjectTransformer;
 import org.bsuir.proctoringbot.util.TelegramUtil;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -50,6 +48,8 @@ public class StudentMenuController {
     private final SubjectService subjectService;
 
     private final SubjectTransformer subjectTransformer;
+
+    private final LabWorkService labWorkService;
 
     @TelegramRequestMapping(from = State.MENU_STUDENT, to = State.PICK_STUDENT_MENU_ITEM)
     @AllowedRoles(Role.STUDENT)
@@ -181,15 +181,15 @@ public class StudentMenuController {
     public void sendLabWork(TelegramRequest req, TelegramResponse resp) {
         if (req.getUpdate().hasMessage()) {
             String link = req.getUpdate().getMessage().getText();
-
+            labWorkService.saveLabWork(req.getUser(), link);
             resp.setResponse(SendMessage.builder()
                     .chatId(TelegramUtil.getChatId(req.getUpdate()))
-                    .text("скиньте ссылку на лабораторную работу:")
+                    .text("Ссылка успешно сохранена")
                     .build());
         } else {
             resp.setResponse(SendMessage.builder()
                     .chatId(TelegramUtil.getChatId(req.getUpdate()))
-                    .text("выберите лабораторную, нажав кнопку")
+                    .text("скиньте ссылку на лабораторную работу")
                     .build()
             );
         }
