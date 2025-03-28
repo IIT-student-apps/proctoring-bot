@@ -46,38 +46,57 @@ public class StudentSubjectController {
     private final UserService dbUserService;
     private final SubjectService subjectService;
 
-    @TelegramRequestMapping(from = State.PICK_SUBJECT_STUDENT)
+    @TelegramRequestMapping(from = State.MENU_STUDENT_GET_INFORMATION, to = State.MENU_STUDENT)
     @AllowedRoles(Role.STUDENT)
     public void pickMenuAboutSubject(TelegramRequest req, TelegramResponse resp) {
         if (req.getUpdate().hasCallbackQuery()) {
             CallbackQuery callbackQuery = req.getUpdate().getCallbackQuery();
             String callbackData = callbackQuery.getData();
-            UserDetails user = req.getUser();
             switch (callbackData) {
                 case MENU_FOR_LINK_BUTT0N_CALLBACK -> {
-                    user.setState(State.MENU_LINK);
-                    List<List<String>> links = subjectService.getAllLinks(user);
-//                    createResponseGetAllLinks(req, resp, links);
+                    List<List<String>> links = subjectService.getAllLinks(req.getUser());
+                    createResponseGetAllX(req, resp, links, "Ссылки: ");
                 }
                 case MENU_FOR_INFORMATION_ABOUT_LABS_BUTT0N_CALLBACK -> {
-
+                    List<List<String>> labs = subjectService.getAllLabWorks(req.getUser());
+                    createResponseGetAllX(req, resp, labs, "Лабораторные: ");
                 }
 
                 case MENU_FOR_LECTIONS_BUTT0N_CALLBACK -> {
-
+                    List<List<String>> lectures = subjectService.getAllLectures(req.getUser());
+                    createResponseGetAllX(req, resp, lectures, "Лекции: ");
                 }
-
-                    default -> throw new TelegramMessageException("Для такой кнопки нет функционала");
+                default -> throw new TelegramMessageException("Для такой кнопки нет функционала");
             }
+
         } else {
             UserDetails user = req.getUser();
             user.setState(State.MENU_STUDENT);
             dbUserService.updateUser(user);
         }
     }
-    @TelegramRequestMapping(from = State.PICK_SUBJECT_STUDENT, to = State.MENU_STUDENT_LR)
+
+    private void createResponseGetAllX(TelegramRequest req, TelegramResponse resp, List<List<String>> links, String header) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("%s", header)).append(System.lineSeparator());
+        for (int i = 0; i < links.size(); i++) {
+            sb.append(i + 1).append(". ");
+            for (String link : links.get(i)) {
+                sb.append(link).append(" ");
+            }
+            sb.append(System.lineSeparator());
+        }
+        SendMessage message = SendMessage.builder()
+                .chatId(TelegramUtil.getChatId(req.getUpdate()))
+                .text(sb.toString())
+                .build();
+        resp.setResponse(message);
+    }
+
+
+    @TelegramRequestMapping(from = State.PICK_SUBJECT_STUDENT, to = State.MENU_STUDENT_GET_INFORMATION)
     @AllowedRoles(Role.STUDENT)
-    public void sendMenuGetInfoAboutLR(TelegramRequest req, TelegramResponse resp){
+    public void sendMenuGetInfoAboutLR(TelegramRequest req, TelegramResponse resp) {
         SendMessage message = SendMessage.builder()
                 .chatId(TelegramUtil.getChatId(req.getUpdate()))
                 .text("Меню:")

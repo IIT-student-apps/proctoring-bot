@@ -152,7 +152,7 @@ public class SpreadsheetsService {
         return result;
     }
 
-    public String getSubjectSpreadsheetURL(String subject, String group){
+    public String getSubjectSpreadsheetURL(String subject, String group) {
         String listName = "Subjects";
         String startCell = "A2";
         String endColumn = "C";
@@ -165,13 +165,12 @@ public class SpreadsheetsService {
                 List.of(filterSubjectColumnPosition, filterGroupColumnPosition),
                 List.of(subject, group));
         for (List<String> strings : rowsByFilter) {
-            if (strings.size() >= urlColumnPosition + 1){
+            if (strings.size() >= urlColumnPosition + 1) {
                 return strings.get(urlColumnPosition);
             }
         }
         return "";
     }
-
 
 
     public void addNewSubject(List<List<String>> subjects) {
@@ -191,7 +190,7 @@ public class SpreadsheetsService {
             sheets.spreadsheets().values()
                     .get(spreadsheetId, range)
                     .execute();
-            if (!SpreadsheetsUtil.isSpreadsheetOpenForRead(spreadsheetUrl)){
+            if (!SpreadsheetsUtil.isSpreadsheetOpenForRead(spreadsheetUrl)) {
                 return 3;
             }
             return 0;
@@ -285,7 +284,7 @@ public class SpreadsheetsService {
         }
     }
 
-    public List<Long> getStudentsTgIdsByGroup(String group){
+    public List<Long> getStudentsTgIdsByGroup(String group) {
         String listName = "Students";
         String startCell = "A2";
         String endColumn = "C";
@@ -299,14 +298,14 @@ public class SpreadsheetsService {
 
         List<Long> studentsIds = new ArrayList<>();
 
-        for (List<String > row : rowsByFilter) {
-            if (row.size() < 3){
+        for (List<String> row : rowsByFilter) {
+            if (row.size() < 3) {
                 continue;
             }
             try {
                 String id = row.get(studentIdColumnPosition);
                 studentsIds.add(Long.parseLong(id));
-            } catch (NumberFormatException e){
+            } catch (NumberFormatException e) {
                 log.warn("wrong student id in list {}: {}", listName, e.getMessage());
             }
         }
@@ -331,7 +330,7 @@ public class SpreadsheetsService {
         return teachersGroups;
     }
 
-    public List<String> getTeacherSubjects(UserDetails userDetails){
+    public List<String> getTeacherSubjects(UserDetails userDetails) {
         String listName = "Subjects";
         String startCell = "A2";
         String endColumn = "D";
@@ -349,26 +348,42 @@ public class SpreadsheetsService {
         return teachersSubjects;
     }
 
-    public List<List<String>> getAllLinks(String studentGroup, String studentSubject) {
+    public List<List<String>> getAllLinks(String spreadsheetId) {
+        String listName = "'Полезные ссылки'";
+        String range = "A1:B";
 
-        String listName = "Subjects";
-        String startCell = "A2";
-        String endColumn = "C";
-        List<Integer> filterColumnPosition = List.of(0,1);
-        int tableURLColumnPosition = 2;
-        List<List<String>> rowsByFilter = findRowsByFilter(listName,
-                startCell,
-                endColumn,
-                filterColumnPosition,
-                List.of(studentSubject, studentGroup)
-        );
-
-        String spreadsheetId = SpreadsheetsUtil.getSpreadsheetId(rowsByFilter.get(0).get(0));
-
-        return new ArrayList<>();
+        return getSubjectInfo(spreadsheetId, listName, range);
     }
 
-    public List<String> getLabWorks(String spreadsheetId) {
+    public List<List<String>> getAllLectures(String spreadsheetId) {
+        String listName = "Лекции";
+        String range = "A1:B";
+
+        return getSubjectInfo(spreadsheetId, listName, range);
+    }
+
+    public List<List<String>> getAllLabs(String spreadsheetId) {
+        String listName = "Лабораторные";
+        String range = "A2:B";
+
+        return getSubjectInfo(spreadsheetId, listName, range);
+    }
+
+    private List<List<String>> getSubjectInfo(String spreadsheetId, String listName, String range) {
+        List<List<String>> result = new ArrayList<>();
+
+        List<List<Object>> lists = readWithOffset(spreadsheetId, listName, range);
+        for (List<Object> list : lists) {
+            if (list.size() < 2) continue;
+            List<String> link = new ArrayList<>();
+            link.add(list.get(0).toString());
+            link.add(list.get(1).toString());
+            result.add(link);
+        }
+        return result;
+    }
+
+    public List<String> getLabWorksNames(String spreadsheetId) {
         String listName = "Лабораторные";
         List<String> result = new ArrayList<>();
 
@@ -424,7 +439,7 @@ public class SpreadsheetsService {
                         break;
                     }
                 }
-                if (isAgreedByFilter){
+                if (isAgreedByFilter) {
                     results.add(row.stream().map(Object::toString).toList());
                 }
             }
@@ -454,6 +469,16 @@ public class SpreadsheetsService {
         }
     }
 
+    private List<List<Object>> readWithOffset(String sheetId, String sheetName, String range) {
+        try {
+            ValueRange response = sheets.spreadsheets().values()
+                    .get(sheetId, String.format("%s!%s", sheetName, range))
+                    .execute();
+            return Optional.ofNullable(response.getValues()).orElse(Collections.emptyList());
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка при чтении данных", e);
+        }
+    }
 
 
 }

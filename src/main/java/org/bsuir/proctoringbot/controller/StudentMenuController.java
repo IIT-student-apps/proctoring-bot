@@ -127,7 +127,7 @@ public class StudentMenuController {
             intermediateStateService.updateIntermediateState(user, IntermediateStateData.builder()
                     .pickedSubject(callbackData)
                     .build());
-            List<String> subjects = subjectService.getAllLabWorks(user);
+            List<String> subjects = subjectService.getAllLabWorksNames(user);
             InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
             List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
             for (String subject : subjects) {
