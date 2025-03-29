@@ -56,7 +56,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                     .text(ex.getMessage())
                     .build());
         } catch (Exception ex) {
-            log.error("Something went work", ex);
+            log.error("Something went wrong", ex);
             sendMessage(sendMessageBuilder
                     .text("Что-то пошло не так...\n" + ex.getMessage())
                     .build());
