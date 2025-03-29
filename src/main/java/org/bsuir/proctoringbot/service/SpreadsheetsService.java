@@ -12,10 +12,7 @@ import org.bsuir.proctoringbot.model.SimpleTelegramUser;
 import org.bsuir.proctoringbot.util.SpreadsheetsUtil;
 import org.springframework.beans.factory.annotation.Value;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -133,6 +130,39 @@ public class SpreadsheetsService {
         } while (!values.isEmpty());
         return null;
     }
+
+    public void writeToCell(String spreadsheetId, String listName, String column, int row, String content){
+        try {
+            String range = String.format("%s!%s%d", listName, column, row);
+            ValueRange body = new ValueRange()
+                    .setValues(List.of(
+                            Collections.singletonList(content)
+                    ));
+
+            sheets.spreadsheets().values()
+                    .update(spreadsheetId, range, body)
+                    .setValueInputOption("RAW")
+                    .execute();
+
+            log.info("Content '{}' successfully written to range '{}'", content, range);
+        } catch (Exception e) {
+            log.error("Failed to write to Google Sheets", e);
+            throw new RuntimeException("Не получилось записать в таблицу");
+        }
+    }
+
+    public int getStudentPositionFromSubjectSheet(String spreadsheetId, String group, String name){
+        String range = "A3:A";
+        List<List<Object>> lists = readWithOffset(spreadsheetId, group, range);
+        for (int i = 0; i < lists.size(); i++){
+            if (lists.get(i).isEmpty()) continue;
+            if (name.equalsIgnoreCase(lists.get(i).get(0).toString())){
+                return i;
+            }
+        }
+        throw new IllegalArgumentException("Нет такого студента в группе");
+    }
+
 
 
     public List<List<String>> getAllSubjectsByGroup(String group) {
