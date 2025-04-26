@@ -2,7 +2,7 @@ package org.bsuir.proctoringbot.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.bsuir.proctoringbot.bot.security.UserDetails;
-import org.bsuir.proctoringbot.jobs.TestStartNotificationJobService;
+import org.bsuir.proctoringbot.jobs.TestStartNotificationJob;
 import org.bsuir.proctoringbot.model.SimpleTelegramUser;
 import org.bsuir.proctoringbot.model.Test;
 import org.bsuir.proctoringbot.repository.TestRepository;
@@ -23,12 +23,13 @@ import java.util.regex.Pattern;
 @Transactional
 public class TestServiceImpl implements TestService {
 
-    private static final Pattern TEST_CREATION_PATTERN = Pattern.compile("^([^,]+),\\s*(https?://\\S+),\\s*(\\d+)(?:,\\s*(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}))?$");
+    private static final Pattern TEST_CREATION_PATTERN = Pattern.compile("^([^,]+),\\s*(https?://\\S+),\\s*(https?://\\S+),\\s*(\\d+)(?:,\\s*(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}))?$");
+
     private static final String TIME_FORMAT = "yyyy-MM-dd HH:mm";
 
     private final TestRepository testRepository;
     private final SpreadsheetsService spreadsheetsService;
-    private final TestStartNotificationJobService testStartNotificationJobService;
+    private final TestStartNotificationJob testStartNotificationJob;
 
     public List<Test> getAllUnactivatedTests(UserDetails userDetails) {
         return testRepository.findAllByAuthorIdAndStartTimeIsNull(userDetails.getId());
@@ -42,14 +43,15 @@ public class TestServiceImpl implements TestService {
         }
         String name = matcher.group(1);
         String url = matcher.group(2);
-        String group = matcher.group(3);
+        String tableLink = matcher.group(3);
+        String group = matcher.group(4);
         if (testRepository.existsByName(name)){
             throw new IllegalArgumentException("Тест с таким названием уже существует, попробуйте другое");
         }
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern(TIME_FORMAT);
             LocalDateTime startTime = null;
-            if (matcher.group(4) != null) {
+            if (matcher.group(5) != null) {
                 startTime = LocalDateTime.parse(matcher.group(4), formatter);
             }
             if (!isUserCanAddTestToGroup(userDetails, group)){
@@ -64,6 +66,7 @@ public class TestServiceImpl implements TestService {
                     .url(url)
                     .groupNumber(group)
                     .startTime(startTime)
+                    .tableLink(tableLink)
                     .build();
             testRepository.save(test);
         } catch (DateTimeParseException e){
@@ -75,7 +78,7 @@ public class TestServiceImpl implements TestService {
     public void activateTest(UserDetails userDetails, String testName) {
         Test test = testRepository.findByName(testName)
                         .orElseThrow(() -> new IllegalArgumentException("Такого теста не существует"));
-        testStartNotificationJobService.notifyManually(test);
+        testStartNotificationJob.notifyManually(test);
     }
 
     private boolean isUserCanAddTestToGroup(UserDetails userDetails, String groupNumber){

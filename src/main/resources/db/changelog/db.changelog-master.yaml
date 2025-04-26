@@ -5,3 +5,5 @@ databaseChangeLog:
       file: db/changelog/2__create_table_tests_info.sql
   - include:
       file: db/changelog/3__create_table_intermediate_state.sql
+  - include:
+      file: db/changelog/4__alter_table_tests_add_status.sql
