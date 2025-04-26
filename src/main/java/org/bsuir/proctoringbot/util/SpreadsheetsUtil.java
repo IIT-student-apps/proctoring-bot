@@ -14,6 +14,19 @@ public class SpreadsheetsUtil {
             SPREADSHEET_ID_REGEX
     );
 
+    public static String getColumnLetter(int columnNumber) {
+        if (columnNumber <= 0) {
+            throw new IllegalArgumentException("Column number must be positive");
+        }
+
+        if (columnNumber <= 26) {
+            return String.valueOf((char) ('A' + columnNumber - 1));
+        } else {
+            return getColumnLetter((columnNumber - 1) / 26) + getColumnLetter((columnNumber - 1) % 26 + 1);
+        }
+    }
+
+
     public static String getSpreadsheetId(String url) {
         if (url == null || url.isEmpty()) {
             throw new IllegalArgumentException("URL таблицы не может быть пустым.");

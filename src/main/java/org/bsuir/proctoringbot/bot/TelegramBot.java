@@ -29,7 +29,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     @PostConstruct
-    public void init(){
+    public void init() {
         try {
             TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
             botsApi.registerBot(this);
@@ -41,6 +41,8 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
+        SendMessage.SendMessageBuilder sendMessageBuilder = SendMessage.builder()
+                .chatId(TelegramUtil.getChatId(update));
         try {
             TelegramRequest request = TelegramRequest.from(update, null);
             TelegramResponse response = TelegramResponse.defaultMessage(TelegramUtil.getChatId(update));
@@ -49,10 +51,17 @@ public class TelegramBot extends TelegramLongPollingBot {
             sendMessage(response.getResponse());
 
         } catch (TelegramMessageException ex) {
-            sendMessage(SendMessage.builder()
-                    .chatId(TelegramUtil.getChatId(update))
+            log.info("User`s mistake {}", ex.getMessage(), ex);
+            sendMessage(sendMessageBuilder
                     .text(ex.getMessage())
                     .build());
+        } catch (Exception ex) {
+            log.error("Something went wrong", ex);
+            sendMessage(sendMessageBuilder
+                    .text("Что-то пошло не так...\n" + ex.getMessage())
+                    .build());
+        } catch (Throwable t) {
+            log.error("Error occurred", t);
         }
     }
 
@@ -61,18 +70,19 @@ public class TelegramBot extends TelegramLongPollingBot {
         return botName;
     }
 
-    public void sendNotification(Long chatId, String message){
+    public void sendNotification(Long chatId, String message) {
         sendMessage(SendMessage.builder()
                 .chatId(chatId)
                 .text(message)
                 .build());
     }
 
-    private void sendMessage(BotApiMethod<?> method){
+    private void sendMessage(BotApiMethod<?> method) {
         try {
             execute(method);
-        } catch (TelegramApiException ex){
+        } catch (TelegramApiException ex) {
             log.warn("Failed to send message: {}", method.toString());
+            log.warn("ex:  ", ex);
         }
     }
 }

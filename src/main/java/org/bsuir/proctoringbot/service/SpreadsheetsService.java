@@ -12,10 +12,7 @@ import org.bsuir.proctoringbot.model.SimpleTelegramUser;
 import org.bsuir.proctoringbot.util.SpreadsheetsUtil;
 import org.springframework.beans.factory.annotation.Value;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -134,6 +131,39 @@ public class SpreadsheetsService {
         return null;
     }
 
+    public void writeToCell(String spreadsheetId, String listName, String column, int row, String content){
+        try {
+            String range = String.format("%s!%s%d", listName, column, row);
+            ValueRange body = new ValueRange()
+                    .setValues(List.of(
+                            Collections.singletonList(content)
+                    ));
+
+            sheets.spreadsheets().values()
+                    .update(spreadsheetId, range, body)
+                    .setValueInputOption("RAW")
+                    .execute();
+
+            log.info("Content '{}' successfully written to range '{}'", content, range);
+        } catch (Exception e) {
+            log.error("Failed to write to Google Sheets", e);
+            throw new RuntimeException("Не получилось записать в таблицу");
+        }
+    }
+
+    public int getStudentPositionFromSubjectSheet(String spreadsheetId, String group, String name){
+        String range = "A3:A";
+        List<List<Object>> lists = readWithOffset(spreadsheetId, group, range);
+        for (int i = 0; i < lists.size(); i++){
+            if (lists.get(i).isEmpty()) continue;
+            if (name.equalsIgnoreCase(lists.get(i).get(0).toString())){
+                return i;
+            }
+        }
+        throw new IllegalArgumentException("Нет такого студента в группе");
+    }
+
+
 
     public List<List<String>> getAllSubjectsByGroup(String group) {
         int offset = 0;
@@ -152,6 +182,25 @@ public class SpreadsheetsService {
         return result;
     }
 
+    public String getSubjectSpreadsheetURL(String subject, String group) {
+        String listName = "Subjects";
+        String startCell = "A2";
+        String endColumn = "C";
+        int filterSubjectColumnPosition = 0;
+        int filterGroupColumnPosition = 1;
+        int urlColumnPosition = 2;
+        List<List<String>> rowsByFilter = findRowsByFilter(listName,
+                startCell,
+                endColumn,
+                List.of(filterSubjectColumnPosition, filterGroupColumnPosition),
+                List.of(subject, group));
+        for (List<String> strings : rowsByFilter) {
+            if (strings.size() >= urlColumnPosition + 1) {
+                return strings.get(urlColumnPosition);
+            }
+        }
+        return "";
+    }
 
 
     public void addNewSubject(List<List<String>> subjects) {
@@ -171,7 +220,7 @@ public class SpreadsheetsService {
             sheets.spreadsheets().values()
                     .get(spreadsheetId, range)
                     .execute();
-            if (!SpreadsheetsUtil.isSpreadsheetOpenForRead(spreadsheetUrl)){
+            if (!SpreadsheetsUtil.isSpreadsheetOpenForRead(spreadsheetUrl)) {
                 return 3;
             }
             return 0;
@@ -265,7 +314,7 @@ public class SpreadsheetsService {
         }
     }
 
-    public List<Long> getStudentsTgIdsByGroup(String group){
+    public List<Long> getStudentsTgIdsByGroup(String group) {
         String listName = "Students";
         String startCell = "A2";
         String endColumn = "C";
@@ -279,14 +328,14 @@ public class SpreadsheetsService {
 
         List<Long> studentsIds = new ArrayList<>();
 
-        for (List<String > row : rowsByFilter) {
-            if (row.size() < 3){
+        for (List<String> row : rowsByFilter) {
+            if (row.size() < 3) {
                 continue;
             }
             try {
                 String id = row.get(studentIdColumnPosition);
                 studentsIds.add(Long.parseLong(id));
-            } catch (NumberFormatException e){
+            } catch (NumberFormatException e) {
                 log.warn("wrong student id in list {}: {}", listName, e.getMessage());
             }
         }
@@ -311,7 +360,7 @@ public class SpreadsheetsService {
         return teachersGroups;
     }
 
-    public List<String> getTeacherSubjects(UserDetails userDetails){
+    public List<String> getTeacherSubjects(UserDetails userDetails) {
         String listName = "Subjects";
         String startCell = "A2";
         String endColumn = "D";
@@ -327,6 +376,71 @@ public class SpreadsheetsService {
             teachersSubjects.add(strings.get(groupColumnPosition));
         }
         return teachersSubjects;
+    }
+
+    public List<List<String>> getAllLinks(String spreadsheetId) {
+        String listName = "'Полезные ссылки'";
+        String range = "A1:B";
+
+        return getSubjectInfo(spreadsheetId, listName, range);
+    }
+
+    public List<List<String>> getAllLectures(String spreadsheetId) {
+        String listName = "Лекции";
+        String range = "A1:B";
+
+        return getSubjectInfo(spreadsheetId, listName, range);
+    }
+
+    public List<List<String>> getAllLabs(String spreadsheetId) {
+        String listName = "Лабораторные";
+        String range = "A2:B";
+
+        return getSubjectInfo(spreadsheetId, listName, range);
+    }
+
+    private List<List<String>> getSubjectInfo(String spreadsheetId, String listName, String range) {
+        List<List<String>> result = new ArrayList<>();
+
+        List<List<Object>> lists = readWithOffset(spreadsheetId, listName, range);
+        for (List<Object> list : lists) {
+            if (list.size() < 2) continue;
+            List<String> link = new ArrayList<>();
+            link.add(list.get(0).toString());
+            link.add(list.get(1).toString());
+            result.add(link);
+        }
+        return result;
+    }
+
+    public List<String> getLabWorksNames(String spreadsheetId) {
+        String listName = "Лабораторные";
+        List<String> result = new ArrayList<>();
+
+        try {
+            String range = listName + "!A2:A";
+
+            ValueRange response = sheets.spreadsheets().values()
+                    .get(spreadsheetId, range)
+                    .execute();
+
+            List<List<Object>> values = response.getValues();
+
+            if (values == null || values.isEmpty()) {
+                return result;
+            }
+
+            for (List<Object> row : values) {
+                if (!row.isEmpty()) {
+                    result.add(row.get(0).toString());
+                }
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+
+        return result;
     }
 
     private List<List<String>> findRowsByFilter(String listName,
@@ -348,10 +462,15 @@ public class SpreadsheetsService {
             int maxColumnPosition = filterColumnsPositions.stream().max(Integer::compareTo).orElse(0);
             for (List<Object> row : rows) {
                 if (row.size() < maxColumnPosition) continue;
+                boolean isAgreedByFilter = true;
                 for (Integer columnPosition : filterColumnsPositions) {
-                    if (row.get(columnPosition).equals(filterParams.get(filterColumnsPositions.indexOf(columnPosition)))) {
-                        results.add(row.stream().map(Object::toString).toList());
+                    if (!row.get(columnPosition).equals(filterParams.get(filterColumnsPositions.indexOf(columnPosition)))) {
+                        isAgreedByFilter = false;
+                        break;
                     }
+                }
+                if (isAgreedByFilter) {
+                    results.add(row.stream().map(Object::toString).toList());
                 }
             }
         } catch (Exception e) {
@@ -380,6 +499,16 @@ public class SpreadsheetsService {
         }
     }
 
+    private List<List<Object>> readWithOffset(String sheetId, String sheetName, String range) {
+        try {
+            ValueRange response = sheets.spreadsheets().values()
+                    .get(sheetId, String.format("%s!%s", sheetName, range))
+                    .execute();
+            return Optional.ofNullable(response.getValues()).orElse(Collections.emptyList());
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка при чтении данных", e);
+        }
+    }
 
 
 }

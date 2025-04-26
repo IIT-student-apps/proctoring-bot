@@ -6,4 +6,6 @@ databaseChangeLog:
   - include:
       file: db/changelog/3__create_table_intermediate_state.sql
   - include:
-      file: db/changelog/4__alter_table_tests_add_status.sql
+      file: db/changelog/4__create_table_labs.sql
+  - include:
+      file: db/changelog/5__alter_table_tests_add_status.sql

@@ -10,6 +10,7 @@ import org.bsuir.proctoringbot.bot.security.UserService;
 import org.bsuir.proctoringbot.bot.statemachine.State;
 import org.bsuir.proctoringbot.util.TelegramUtil;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -22,6 +23,8 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class TelegramUpdateDispatcher {
 
+    private static final String REQUEST_REFRESH_STATE_MESSAGE = "refresh_state_01";
+
     private final Map<State, StateMethodHandler> handlerMap = new HashMap<>();
     private final AuthenticationManager authenticationManager;
     private final UserService dbUserService;
@@ -32,7 +35,7 @@ public class TelegramUpdateDispatcher {
         handlerMap.put(startState, new StateMethodHandler(bean, method, startState, endState, roleSet));
     }
 
-    public void dispatch(TelegramRequest request, TelegramResponse response) {
+    public void dispatch(TelegramRequest request, TelegramResponse response) throws Throwable {
         try {
 
             UserDetails user = authenticationManager.authenticate(
@@ -41,6 +44,14 @@ public class TelegramUpdateDispatcher {
             );
 
             request.setUser(user);
+
+            if (checkAndRefreshUserState(user, request)){
+                response.setResponse(SendMessage.builder()
+                        .chatId(TelegramUtil.getChatId(request.getUpdate()))
+                        .text("Состояние успешно сброшено")
+                        .build());
+                return;
+            }
 
             StateMethodHandler handler = handlerMap.get(user.getState());
 
@@ -64,12 +75,26 @@ public class TelegramUpdateDispatcher {
             }
 
         } catch(InvocationTargetException ex){
-            log.error(ex.getCause().getMessage());
-            throw new TelegramMessageException(ex.getCause().getMessage());
+            throw ex.getCause();
         } catch(Exception e){
-            log.warn("Caught unhandled exception for {}", request.getMessage(), e);
-            throw new TelegramMessageException("Ошибка обработки запроса");
+            log.error("Caught unhandled exception", e);
+            throw e;
         }
+    }
+
+    private boolean checkAndRefreshUserState(UserDetails userDetails, TelegramRequest req){
+        if(!req.getUpdate().hasMessage() || !REQUEST_REFRESH_STATE_MESSAGE.equals(req.getUpdate().getMessage().getText())){
+            return false;
+        }
+        if (userDetails.getRole() == Role.STUDENT){
+            userDetails.setState(State.MENU_STUDENT);
+        } else if (userDetails.getRole() == Role.TEACHER) {
+            userDetails.setState(State.MENU_TEACHER);
+        } else {
+            return false;
+        }
+        dbUserService.updateUser(userDetails);
+        return true;
     }
 
 }

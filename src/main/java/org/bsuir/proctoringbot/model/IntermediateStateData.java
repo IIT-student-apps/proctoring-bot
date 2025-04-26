@@ -13,6 +13,6 @@ public class IntermediateStateData implements Serializable {
 
     private String pickedSubject;
 
-    private String pickedWorkType;
+    private String pickedLabWorkNumber;
 
 }
