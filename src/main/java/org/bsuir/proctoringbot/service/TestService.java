@@ -13,4 +13,6 @@ public interface TestService {
 
     void activateTest(UserDetails userDetails, String testName);
 
+    void writeMarks(Test test);
+
 }
