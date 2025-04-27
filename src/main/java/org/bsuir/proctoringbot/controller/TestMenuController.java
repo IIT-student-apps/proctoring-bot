@@ -45,7 +45,7 @@ public class TestMenuController {
                     user.setState(State.TEACHER_ADD_TEST);
                     resp.setResponse(SendMessage.builder()
                             .chatId(TelegramUtil.getChatId(req.getUpdate()))
-                            .text("Введите название теста, ссылку, номер группы и время начала теста(необязательно)")
+                            .text("Введите название теста, ссылку, ссылку на таблицу с результатами, номер группы и время начала теста(необязательно)")
                             .build());
                     user.setState(State.TEACHER_ADD_TEST);
                 }

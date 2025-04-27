@@ -1,15 +1,6 @@
 package org.bsuir.proctoringbot.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -30,15 +21,26 @@ public class Test {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id")
     private SimpleTelegramUser author;
+
     @Column(nullable = false)
     private String groupNumber;
+
     @Column(nullable = false, unique = true)
     private String name;
+
     @Column(nullable = false)
     private String url;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    private TestStatus status = TestStatus.CREATED;
+
+    @Column(nullable = false)
+    private String tableLink;
 
     private LocalDateTime startTime;
 

@@ -3,6 +3,9 @@ package org.bsuir.proctoringbot.util;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,5 +57,12 @@ public class SpreadsheetsUtil {
             throw new RuntimeException("Ошибка при проверке доступа: " + e.getMessage(), e);
         }
         return true;
+    }
+
+    public static List<String> removeFirst(List<String> list) {
+        if (list == null || list.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return new ArrayList<>(list.subList(1, list.size()));
     }
 }

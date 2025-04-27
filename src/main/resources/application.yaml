@@ -17,17 +17,18 @@ spring:
 
 bot:
   name: proctoring-bot
-  token: <TOKEN>
+  token: 7821697535:AAFM31HTXw5rVH76mHF1XHijPiR1NfmUdw8
   email: <EMAIL>
 
 google:
   application:
     name: ProctoringBot
   sheets:
-    table-id: <TABLE_ID>
+    table-id: 1Cr9aGwaU2X-qMVeVDM04c_mTSrZGqcIhj4UiqsS3ikA
   credentials:
     path: src/main/resources/tokens/proctoringbot.json
 
 job:
   cron:
     test-start: "0 * * * * *"
+    test-check: "0 */30 * * * *"

@@ -1,6 +1,7 @@
 package org.bsuir.proctoringbot.repository;
 
 import org.bsuir.proctoringbot.model.Test;
+import org.bsuir.proctoringbot.model.TestStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,4 +20,11 @@ public interface TestRepository extends JpaRepository<Test, Integer> {
 
     @Query("SELECT t FROM Test t WHERE t.startTime = :startTime")
     Iterable<Test> findAllByStartTime(@Param("startTime")LocalDateTime startTime);
+
+    @Query("SELECT t FROM Test t WHERE t.startTime <= :timeThreshold AND t.status = :status")
+    Iterable<Test> findAllWithStartTimeBeforeAndStatus(
+            @Param("timeThreshold") LocalDateTime timeThreshold,
+            @Param("status") TestStatus status
+    );
+
 }
