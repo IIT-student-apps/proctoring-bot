@@ -10,5 +10,3 @@ CREATE TABLE labs(
     status TEXT NOT NUll
 )
 
-
-

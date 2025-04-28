@@ -13,7 +13,9 @@ import org.bsuir.proctoringbot.bot.security.UserDetails;
 import org.bsuir.proctoringbot.bot.security.UserService;
 import org.bsuir.proctoringbot.bot.statemachine.State;
 import org.bsuir.proctoringbot.model.IntermediateStateData;
+import org.bsuir.proctoringbot.model.LabWork;
 import org.bsuir.proctoringbot.service.IntermediateStateService;
+import org.bsuir.proctoringbot.service.LabWorkService;
 import org.bsuir.proctoringbot.service.SpreadsheetsService;
 import org.bsuir.proctoringbot.service.TeacherService;
 import org.bsuir.proctoringbot.util.TelegramUtil;
@@ -26,7 +28,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+
 import static org.bsuir.proctoringbot.bot.statemachine.State.*;
+
+import static org.bsuir.proctoringbot.bot.statemachine.State.TEACHER_GET_LAB_WORKS;
+
 import static org.bsuir.proctoringbot.util.Constants.*;
 
 @TelegramController
@@ -87,7 +93,11 @@ public class TeacherMenuController {
 
     private final IntermediateStateService intermediateStateService;
 
+
     private final TeacherService teacherService;
+
+    private final LabWorkService labWorkService;
+
 
     @TelegramRequestMapping(from = State.MENU_TEACHER, to = State.PICK_TEACHER_MENU_ITEM)
     @AllowedRoles(Role.TEACHER)
@@ -165,14 +175,21 @@ public class TeacherMenuController {
     }
 
 
+
     @TelegramRequestMapping(from = State.SUBJECT_TEACHER_UPDATE_MENU)
     @AllowedRoles(Role.TEACHER)
     public void pickSubjectTeacherMenuItem(TelegramRequest req, TelegramResponse resp) {
+
+    @TelegramRequestMapping(from = State.SUBJECT_TEACHER_UPDATE_MENU)
+    @AllowedRoles(Role.TEACHER)
+    public void pickUpdateInfoMenuItem(TelegramRequest req, TelegramResponse resp) {
+
         if (req.getUpdate().hasCallbackQuery()) {
             CallbackQuery callbackQuery = req.getUpdate().getCallbackQuery();
             String callbackData = callbackQuery.getData();
             UserDetails user = req.getUser();
             switch (callbackData) {
+
                 case ADD_WORKS_INFO_CALLBACK -> {
                     createResponseAddSubjectInfo(req, resp, "введите название и ссылку на лабораторную");
                     user.setState(ADD_LAB_WORK_TEACHER_MENU);
@@ -184,6 +201,17 @@ public class TeacherMenuController {
                 case ADD_MATERIALS_INFO_CALLBACK -> {
                     user.setState(State.ADD_MATERIALS_TEACHER_MENU);
                     createResponseAddSubjectInfo(req, resp, "введите название и ссылку на материалы");
+
+                case GET_WORKS_INFO_CALLBACK -> {
+                    createResponseGetLabWorks(req, resp);
+                    user.setState(State.MENU_TEACHER);
+                }
+                case GET_LECTURES_INFO_CALLBACK -> {
+
+                }
+                case GET_MATERIALS_INFO_CALLBACK -> {
+
+
                 }
                 default -> throw new TelegramMessageException("Для такой кнопки нет функционала");
             }
@@ -194,6 +222,7 @@ public class TeacherMenuController {
             dbUserService.updateUser(user);
         }
     }
+
 
     private void createResponseAddSubjectInfo(TelegramRequest req, TelegramResponse resp, String text) {
         SendMessage message = SendMessage.builder()
@@ -241,6 +270,20 @@ public class TeacherMenuController {
         SendMessage message = SendMessage.builder()
                 .chatId(TelegramUtil.getChatId(req.getUpdate()))
                 .text("информация успешно сохранена")
+
+    private void createResponseGetLabWorks(TelegramRequest req, TelegramResponse resp) {
+        List<LabWork> labWorks = labWorkService.getAllLabWorks(req.getUser());
+
+        StringBuilder sb = new StringBuilder();
+
+        for (LabWork labWork : labWorks) {
+            sb.append(labWork.getUser().getName()).append(" ").append(labWork.getLink()).append("\n");
+        }
+
+        SendMessage message = SendMessage.builder()
+                .chatId(TelegramUtil.getChatId(req.getUpdate()))
+                .text(sb.toString())
+
                 .build();
         resp.setResponse(message);
     }
@@ -317,6 +360,13 @@ public class TeacherMenuController {
             InlineKeyboardButton button = new InlineKeyboardButton(subject);
             button.setCallbackData(subject);
             buttons.add(button);
+
+
+        });
+
+        buttons.forEach((button) -> {
+            rowsInline.add(List.of(button));
+
         });
 
         buttons.forEach((button) -> rowsInline.add(List.of(button)));

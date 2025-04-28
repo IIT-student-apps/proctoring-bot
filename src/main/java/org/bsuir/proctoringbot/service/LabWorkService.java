@@ -84,4 +84,11 @@ public class LabWorkService {
     }
 
 
+    public List<LabWork> getAllLabWorks(UserDetails user){
+        IntermediateState intermediateState = intermediateStateService.getIntermediateState(user);
+        List<LabWork> labWorks = labWorkRepository.getAllAddedLabWorks(intermediateState.getState().getPickedSubject());
+        return labWorks;
+    }
+
+
 }

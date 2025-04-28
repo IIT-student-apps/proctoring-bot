@@ -15,7 +15,7 @@ import java.util.List;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class TestStartNotificationJobService {
+public class TestStartNotificationJob {
 
     private final TestRepository testRepository;
     private final SpreadsheetsService spreadsheetsService;
@@ -33,6 +33,8 @@ public class TestStartNotificationJobService {
 
     public void notifyManually(Test test){
         makeNotification(test);
+        test.setStartTime(LocalDateTime.now());
+        testRepository.save(test);
     }
 
     private void makeNotification(Test test){

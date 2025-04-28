@@ -13,6 +13,7 @@ import org.bsuir.proctoringbot.util.SpreadsheetsUtil;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -469,6 +470,150 @@ public class SpreadsheetsService {
 
         return result;
     }
+
+    public String getSubjectSpreadsheetURLByGroupAndUsername(String group, String username) {
+        String listName = "Subjects";
+        String startCell = "A2";
+        String endColumn = "D";
+        int filterGroupColumnPosition = 1;
+        int filterUsernameColumnPosition = 3;
+        int urlColumnPosition = 2;
+        List<List<String>> rowsByFilter = findRowsByFilter(listName,
+                startCell,
+                endColumn,
+                List.of(filterGroupColumnPosition, filterUsernameColumnPosition),
+                List.of(group, username));
+        for (List<String> strings : rowsByFilter) {
+            if (strings.size() >= urlColumnPosition + 1) {
+                return strings.get(urlColumnPosition);
+            }
+        }
+        return "";
+    }
+
+    public List<List<String>> getAllAnswers(String tableLinkSpreadsheetId) {
+        String sheetName = "Ответы на форму (1)";
+        List<List<String>> lists = readAll(tableLinkSpreadsheetId, sheetName);
+        return getFIOsAndMarks(lists);
+    }
+
+    public List<String> getAllFIOs(String subjectTableSpreadsheetId, String groupName) {
+        return readSingleColumn(subjectTableSpreadsheetId, groupName, "A3", "A");
+    }
+
+    public void writeColumnOfMarks(String spreadsheetId, String sheetName, List<String> formedColumnOfMarks) {
+        try {
+            ValueRange readRange = sheets.spreadsheets().values()
+                    .get(spreadsheetId, sheetName)
+                    .execute();
+            List<List<Object>> rows = readRange.getValues();
+            int columnCount = 0;
+            if (rows != null && !rows.isEmpty()) {
+                for (List<Object> row : rows) {
+                    if (row != null) {
+                        columnCount = Math.max(columnCount, row.size());
+                    }
+                }
+            }
+            String columnLetter = columnNumberToLetter(columnCount);
+            List<List<Object>> values = formedColumnOfMarks.stream()
+                    .map(value -> Collections.singletonList((Object) value))
+                    .collect(Collectors.toList());
+
+            ValueRange body = new ValueRange()
+                    .setValues(values);
+            String range = String.format("%s!%s1:%s", sheetName, columnLetter, columnLetter);
+            sheets.spreadsheets().values()
+                    .update(spreadsheetId, range, body)
+                    .setValueInputOption("RAW")
+                    .execute();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка при записи столбца оценок", e);
+        }
+    }
+
+    private String columnNumberToLetter(int column) {
+        StringBuilder letter = new StringBuilder();
+        while (column >= 0) {
+            letter.insert(0, (char) ('A' + (column % 26)));
+            column = column / 26 - 1;
+        }
+        return letter.toString();
+    }
+
+    private List<List<String>> getFIOsAndMarks(List<List<String>> lists) {
+        if (lists == null || lists.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<List<String>> result = new ArrayList<>();
+
+        List<String> secondColumn = new ArrayList<>();
+        for (List<String> row : lists) {
+            if (row.size() > 1) {
+                secondColumn.add(row.get(1));
+            }
+        }
+        result.add(SpreadsheetsUtil.removeFirst(secondColumn));
+
+        List<String> lastColumn = new ArrayList<>();
+        for (List<String> row : lists) {
+            if (!row.isEmpty()) {
+                lastColumn.add(row.get(row.size() - 1));
+            }
+        }
+        result.add(SpreadsheetsUtil.removeFirst(lastColumn));
+
+        return result;
+    }
+
+
+    private List<List<String>> readAll(String sheetId, String sheetName) {
+        try {
+            ValueRange response = sheets.spreadsheets().values()
+                    .get(sheetId, sheetName)
+                    .execute();
+            List<List<Object>> rawValues = Optional.ofNullable(response.getValues()).orElse(Collections.emptyList());
+
+            List<List<String>> result = new ArrayList<>();
+            for (List<Object> row : rawValues) {
+                List<String> stringRow = new ArrayList<>();
+                for (Object cell : row) {
+                    stringRow.add(cell != null ? cell.toString() : "");
+                }
+                result.add(stringRow);
+            }
+            return result;
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка при чтении всех данных с листа", e);
+        }
+    }
+
+    private List<String> readSingleColumn(String sheetId, String sheetName, String row, String column) {
+        try {
+            // Пример диапазона: "A:A" для всего столбца A
+            String range = String.format("%s!%s:%s", sheetName, row, column);
+            ValueRange response = sheets.spreadsheets().values()
+                    .get(sheetId, range)
+                    .execute();
+            List<List<Object>> rawValues = Optional.ofNullable(response.getValues()).orElse(Collections.emptyList());
+
+            List<String> result = new ArrayList<>();
+            for (List<Object> val : rawValues) {
+                if (!row.isEmpty()) {
+                    result.add(val.get(0).toString());
+                } else {
+                    result.add(""); // если строка пустая
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка при чтении одного столбца", e);
+        }
+    }
+
+
 
     private List<List<String>> findRowsByFilter(String listName,
                                                 String startCell,
