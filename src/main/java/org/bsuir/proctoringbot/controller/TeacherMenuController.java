@@ -15,9 +15,11 @@ import org.bsuir.proctoringbot.bot.statemachine.State;
 import org.bsuir.proctoringbot.model.IntermediateStateData;
 import org.bsuir.proctoringbot.service.IntermediateStateService;
 import org.bsuir.proctoringbot.service.SpreadsheetsService;
+import org.bsuir.proctoringbot.service.TeacherService;
 import org.bsuir.proctoringbot.util.TelegramUtil;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
@@ -25,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.bsuir.proctoringbot.bot.statemachine.State.*;
 import static org.bsuir.proctoringbot.util.Constants.*;
 
 @TelegramController
@@ -61,6 +64,20 @@ public class TeacherMenuController {
             GET_LECTURES_INFO, GET_LECTURES_INFO_CALLBACK
     );
 
+    private static final Map<String, String> SUBJECT_FORTH_MENU_BUTTONS = Map.of(
+            ADD_LECTURES_INFO, ADD_LECTURES_INFO_CALLBACK
+    );
+
+    private static final Map<String, String> SUBJECT_FIFTH_MENU_BUTTONS = Map.of(
+            ADD_MATERIALS_INFO, ADD_MATERIALS_INFO_CALLBACK
+    );
+
+    private static final Map<String, String> SUBJECT_SIXTH_MENU_BUTTONS = Map.of(
+            ADD_WORKS_INFO, ADD_WORKS_INFO_CALLBACK
+    );
+
+
+
     private static final Map<String, String> TEST_MENU_BUTTONS_SECOND_ROW = Map.of(
             DELETE_TEST_INFO_BUTTON, DELETE_TEST_INFO_BUTTON_CALLBACK,
             ACTIVATE_TEST_BUTTON, ACTIVATE_TEST_BUTTON_CALLBACK
@@ -71,6 +88,8 @@ public class TeacherMenuController {
     private final SpreadsheetsService spreadsheetsService;
 
     private final IntermediateStateService intermediateStateService;
+
+    private final TeacherService teacherService;
 
     @TelegramRequestMapping(from = State.MENU_TEACHER, to = State.PICK_TEACHER_MENU_ITEM)
     @AllowedRoles(Role.TEACHER)
@@ -146,6 +165,88 @@ public class TeacherMenuController {
             dbUserService.updateUser(user);
         }
     }
+
+
+    @TelegramRequestMapping(from = State.SUBJECT_TEACHER_UPDATE_MENU)
+    @AllowedRoles(Role.TEACHER)
+    public void pickSubjectTeacherMenuItem(TelegramRequest req, TelegramResponse resp) {
+        if (req.getUpdate().hasCallbackQuery()) {
+            CallbackQuery callbackQuery = req.getUpdate().getCallbackQuery();
+            String callbackData = callbackQuery.getData();
+            UserDetails user = req.getUser();
+            switch (callbackData) {
+                case ADD_WORKS_INFO_CALLBACK -> {
+                    createResponseAddSubjectInfo(req, resp, "введите название и ссылку на лабораторную");
+                    user.setState(ADD_LAB_WORK_TEACHER_MENU);
+                }
+                case ADD_LECTURES_INFO_CALLBACK -> {
+                    user.setState(State.ADD_LECTURE_TEACHER_MENU);
+                    createResponseAddSubjectInfo(req, resp, "введите название и ссылку на лекции");
+                }
+                case ADD_MATERIALS_INFO_CALLBACK ->{
+                    user.setState(State.ADD_MATERIALS_TEACHER_MENU);
+                    createResponseAddSubjectInfo(req, resp, "введите название и ссылку на материалы");
+                }
+                default -> throw new TelegramMessageException("Для такой кнопки нет функционала");
+            }
+            dbUserService.updateUser(user);
+        } else {
+            UserDetails user = req.getUser();
+            user.setState(State.MENU_TEACHER);
+            dbUserService.updateUser(user);
+        }
+    }
+
+    private void createResponseAddSubjectInfo(TelegramRequest req, TelegramResponse resp, String text) {
+        SendMessage message = SendMessage.builder()
+                .chatId(TelegramUtil.getChatId(req.getUpdate()))
+                .text(text)
+                .build();
+        resp.setResponse(message);
+    }
+
+    @TelegramRequestMapping(from = ADD_LAB_WORK_TEACHER_MENU, to = MENU_TEACHER)
+    public void pickAddLabWorkItem(TelegramRequest req, TelegramResponse resp){
+        if (!req.getUpdate().hasMessage()){
+            throw new TelegramMessageException("введите название и ссылку на лабораторную");
+        }
+        String text = req.getUpdate().getMessage().getText();
+        teacherService.addInfoToSubject(req.getUser(), text, "Лабораторные");
+        SendMessage message = SendMessage.builder()
+                .chatId(TelegramUtil.getChatId(req.getUpdate()))
+                .text("информация успешно сохранена")
+                .build();
+        resp.setResponse(message);
+    }
+
+    @TelegramRequestMapping(from = ADD_LECTURE_TEACHER_MENU, to = MENU_TEACHER)
+    public void pickAddLectureItem(TelegramRequest req, TelegramResponse resp){
+        if (!req.getUpdate().hasMessage()){
+            throw new TelegramMessageException("введите название и ссылку на лекцию");
+        }
+        String text = req.getUpdate().getMessage().getText();
+        teacherService.addInfoToSubject(req.getUser(), text, "Лекции");
+        SendMessage message = SendMessage.builder()
+                .chatId(TelegramUtil.getChatId(req.getUpdate()))
+                .text("информация успешно сохранена")
+                .build();
+        resp.setResponse(message);
+    }
+
+    @TelegramRequestMapping(from = ADD_MATERIALS_TEACHER_MENU, to = MENU_TEACHER)
+    public void pickAddMaterialsItem(TelegramRequest req, TelegramResponse resp){
+        if (!req.getUpdate().hasMessage()){
+            throw new TelegramMessageException("введите название и ссылку на материалы");
+        }
+        String text = req.getUpdate().getMessage().getText();
+        teacherService.addInfoToSubject(req.getUser(), text,"Полезные ссылки");
+        SendMessage message = SendMessage.builder()
+                .chatId(TelegramUtil.getChatId(req.getUpdate()))
+                .text("информация успешно сохранена")
+                .build();
+        resp.setResponse(message);
+    }
+
     @TelegramRequestMapping(from = State.GET_TEACHER_SUBJECTS, to = State.SUBJECT_TEACHER_UPDATE_MENU)
     @AllowedRoles(Role.TEACHER)
     public void subjectMenu(TelegramRequest req, TelegramResponse resp) {
@@ -163,6 +264,9 @@ public class TeacherMenuController {
         List<InlineKeyboardButton> firstRowButtons = new ArrayList<>();
         List<InlineKeyboardButton> secondRowButtons = new ArrayList<>();
         List<InlineKeyboardButton> thirdRowButtons = new ArrayList<>();
+        List<InlineKeyboardButton> forthRowButtons = new ArrayList<>();
+        List<InlineKeyboardButton> fifthRowButtons = new ArrayList<>();
+        List<InlineKeyboardButton> sixthRowButtons = new ArrayList<>();
         SUBJECT_FIRST_MENU_BUTTONS.forEach((buttonText, buttonCallback) -> {
             InlineKeyboardButton button = new InlineKeyboardButton(buttonText);
             button.setCallbackData(buttonCallback);
@@ -178,9 +282,28 @@ public class TeacherMenuController {
             button.setCallbackData(buttonCallback);
             thirdRowButtons.add(button);
         });
+        SUBJECT_FORTH_MENU_BUTTONS.forEach((buttonText, buttonCallback) -> {
+            InlineKeyboardButton button = new InlineKeyboardButton(buttonText);
+            button.setCallbackData(buttonCallback);
+            forthRowButtons.add(button);
+        });
+        SUBJECT_FIFTH_MENU_BUTTONS.forEach((buttonText, buttonCallback) -> {
+            InlineKeyboardButton button = new InlineKeyboardButton(buttonText);
+            button.setCallbackData(buttonCallback);
+            fifthRowButtons.add(button);
+        });
+        SUBJECT_SIXTH_MENU_BUTTONS.forEach((buttonText, buttonCallback) -> {
+            InlineKeyboardButton button = new InlineKeyboardButton(buttonText);
+            button.setCallbackData(buttonCallback);
+            sixthRowButtons.add(button);
+        });
+
         rowsInline.add(firstRowButtons);
         rowsInline.add(secondRowButtons);
         rowsInline.add(thirdRowButtons);
+        rowsInline.add(forthRowButtons);
+        rowsInline.add(fifthRowButtons);
+        rowsInline.add(sixthRowButtons);
         keyboard.setKeyboard(rowsInline);
         message.setReplyMarkup(keyboard);
         resp.setResponse(message);
