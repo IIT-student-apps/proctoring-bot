@@ -19,7 +19,6 @@ import org.bsuir.proctoringbot.service.TeacherService;
 import org.bsuir.proctoringbot.util.TelegramUtil;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
@@ -77,7 +76,6 @@ public class TeacherMenuController {
     );
 
 
-
     private static final Map<String, String> TEST_MENU_BUTTONS_SECOND_ROW = Map.of(
             DELETE_TEST_INFO_BUTTON, DELETE_TEST_INFO_BUTTON_CALLBACK,
             ACTIVATE_TEST_BUTTON, ACTIVATE_TEST_BUTTON_CALLBACK
@@ -93,7 +91,7 @@ public class TeacherMenuController {
 
     @TelegramRequestMapping(from = State.MENU_TEACHER, to = State.PICK_TEACHER_MENU_ITEM)
     @AllowedRoles(Role.TEACHER)
-    public void startMenu(TelegramRequest req, TelegramResponse resp){
+    public void startMenu(TelegramRequest req, TelegramResponse resp) {
 
         SendMessage message = SendMessage.builder()
                 .chatId(req.getUpdate().getMessage().getFrom().getId())
@@ -152,7 +150,7 @@ public class TeacherMenuController {
                     user.setState(State.PICK_TESTS_MENU_ITEM);
                     createTestMenuResponse(req, resp);
                 }
-                case UPDATE_SUBJECT_INFO_BUTTON_CALLBACK ->{
+                case UPDATE_SUBJECT_INFO_BUTTON_CALLBACK -> {
                     user.setState(State.GET_TEACHER_SUBJECTS);
                     createGetAllSubjectsResponse(req, resp);
                 }
@@ -183,7 +181,7 @@ public class TeacherMenuController {
                     user.setState(State.ADD_LECTURE_TEACHER_MENU);
                     createResponseAddSubjectInfo(req, resp, "введите название и ссылку на лекции");
                 }
-                case ADD_MATERIALS_INFO_CALLBACK ->{
+                case ADD_MATERIALS_INFO_CALLBACK -> {
                     user.setState(State.ADD_MATERIALS_TEACHER_MENU);
                     createResponseAddSubjectInfo(req, resp, "введите название и ссылку на материалы");
                 }
@@ -206,8 +204,8 @@ public class TeacherMenuController {
     }
 
     @TelegramRequestMapping(from = ADD_LAB_WORK_TEACHER_MENU, to = MENU_TEACHER)
-    public void pickAddLabWorkItem(TelegramRequest req, TelegramResponse resp){
-        if (!req.getUpdate().hasMessage()){
+    public void pickAddLabWorkItem(TelegramRequest req, TelegramResponse resp) {
+        if (!req.getUpdate().hasMessage()) {
             throw new TelegramMessageException("введите название и ссылку на лабораторную");
         }
         String text = req.getUpdate().getMessage().getText();
@@ -220,8 +218,8 @@ public class TeacherMenuController {
     }
 
     @TelegramRequestMapping(from = ADD_LECTURE_TEACHER_MENU, to = MENU_TEACHER)
-    public void pickAddLectureItem(TelegramRequest req, TelegramResponse resp){
-        if (!req.getUpdate().hasMessage()){
+    public void pickAddLectureItem(TelegramRequest req, TelegramResponse resp) {
+        if (!req.getUpdate().hasMessage()) {
             throw new TelegramMessageException("введите название и ссылку на лекцию");
         }
         String text = req.getUpdate().getMessage().getText();
@@ -234,12 +232,12 @@ public class TeacherMenuController {
     }
 
     @TelegramRequestMapping(from = ADD_MATERIALS_TEACHER_MENU, to = MENU_TEACHER)
-    public void pickAddMaterialsItem(TelegramRequest req, TelegramResponse resp){
-        if (!req.getUpdate().hasMessage()){
+    public void pickAddMaterialsItem(TelegramRequest req, TelegramResponse resp) {
+        if (!req.getUpdate().hasMessage()) {
             throw new TelegramMessageException("введите название и ссылку на материалы");
         }
         String text = req.getUpdate().getMessage().getText();
-        teacherService.addInfoToSubject(req.getUser(), text,"Полезные ссылки");
+        teacherService.addInfoToSubject(req.getUser(), text, "Полезные ссылки");
         SendMessage message = SendMessage.builder()
                 .chatId(TelegramUtil.getChatId(req.getUpdate()))
                 .text("информация успешно сохранена")
@@ -319,11 +317,9 @@ public class TeacherMenuController {
             InlineKeyboardButton button = new InlineKeyboardButton(subject);
             button.setCallbackData(subject);
             buttons.add(button);
-        } );
-
-        buttons.forEach((button) -> {
-            rowsInline.add(List.of(button));
         });
+
+        buttons.forEach((button) -> rowsInline.add(List.of(button)));
         inlineKeyboardMarkup.setKeyboard(rowsInline);
 
         SendMessage message = SendMessage.builder()
