@@ -164,11 +164,6 @@ public class SpreadsheetsService {
         throw new IllegalArgumentException("Нет такого студента в группе");
     }
 
-    public void addSubjectInfo(String link, String listName, List<String> info){
-        List<Object> rowAsObjects = new ArrayList<>(info);
-        addToEnd(link, listName, "A2", "D", rowAsObjects);
-    }
-
 
 
     public List<List<String>> getAllSubjectsByGroup(String group) {
@@ -208,37 +203,16 @@ public class SpreadsheetsService {
         return "";
     }
 
-    public String getSubjectSpreadsheetURLForTeacher(String subject, String teacherUsername) {
-        String listName = "Subjects";
-        String startCell = "A2";
-        String endColumn = "D";
-        int filterSubjectColumnPosition = 0;
-        int filterTeacherUsernameColumnPosition = 3;
-        int urlColumnPosition = 2;
-        List<List<String>> rowsByFilter = findRowsByFilter(listName,
-                startCell,
-                endColumn,
-                List.of(filterSubjectColumnPosition, filterTeacherUsernameColumnPosition),
-                List.of(subject, teacherUsername));
-        for (List<String> strings : rowsByFilter) {
-            if (strings.size() >= urlColumnPosition + 1) {
-                return strings.get(urlColumnPosition);
-            }
-        }
-        return "";
-    }
-
 
     public void addNewSubject(List<List<String>> subjects) {
         for (List<String> row : subjects) {
             List<Object> rowAsObjects = new ArrayList<>(row);
             boolean isUpdated = update("Subjects", "A2", "D", rowAsObjects, List.of(0, 1, 3));
             if (!isUpdated) {
-                addToEnd(studentsSheetId,"Subjects", "A2", "D", rowAsObjects);
+                addToEnd("Subjects", "A2", "D", rowAsObjects);
             }
         }
     }
-
 
     public int isSheetPublic(String spreadsheetUrl) {
         try {
@@ -264,8 +238,7 @@ public class SpreadsheetsService {
         }
     }
 
-    private boolean addToEnd(String link,
-                             String listName,
+    private boolean addToEnd(String listName,
                              String startCell,
                              String endColumn,
                              List<Object> row
@@ -275,7 +248,7 @@ public class SpreadsheetsService {
         String range = listName + "!" + startCell + ":" + endColumn;
         try {
             ValueRange response = sheets.spreadsheets().values()
-                    .get(link, range)
+                    .get(studentsSheetId, range)
                     .execute();
             List<List<Object>> values = response.getValues();
             if (values == null) {
@@ -286,7 +259,7 @@ public class SpreadsheetsService {
             String cell = listName + "!" + startColumn + startRow;
             ValueRange body = new ValueRange().setValues(Collections.singletonList(row));
             sheets.spreadsheets().values()
-                    .update(link, cell, body)
+                    .update(studentsSheetId, cell, body)
                     .setValueInputOption("RAW")
                     .execute();
             System.out.println("Запись добавлена в конец.");
