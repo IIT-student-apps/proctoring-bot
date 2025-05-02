@@ -15,6 +15,15 @@ public class Constants {
     public static final String GET_LECTURES_INFO = "Просмотр всех лекций";
     public static final String GET_LECTURES_INFO_CALLBACK = "лекции";
 
+    public static final String ADD_MATERIALS_INFO = "Добавить материалы";
+    public static final String ADD_MATERIALS_INFO_CALLBACK = "добавление материалов";
+
+    public static final String ADD_WORKS_INFO = "Добавить лабораторную";
+    public static final String ADD_WORKS_INFO_CALLBACK= "добавление лабораторной";
+
+    public static final String ADD_LECTURES_INFO = "Добавить лекцию";
+    public static final String ADD_LECTURES_INFO_CALLBACK = "добавление лекции";
+
     public static final String UPDATE_SUBJECT_INFO_BUTTON_CALLBACK = "Обновить информацию о предмете";
     public static final String EDIT_LAB_WORK_BUTTON_CALLBACK = "Корректировка лабораторной работы";
     public static final String WORK_WITH_TESTS_BUTTON_CALLBACK = "Работа с тестами";
