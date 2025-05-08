@@ -17,14 +17,14 @@ spring:
 
 bot:
   name: proctoring-bot
-  token: 7821697535:AAFM31HTXw5rVH76mHF1XHijPiR1NfmUdw8
+  token: <TOKEN>
   email: <EMAIL>
 
 google:
   application:
     name: ProctoringBot
   sheets:
-    table-id: 1Cr9aGwaU2X-qMVeVDM04c_mTSrZGqcIhj4UiqsS3ikA
+    table-id: <TABLE-ID>
   credentials:
     path: src/main/resources/tokens/proctoringbot.json
 

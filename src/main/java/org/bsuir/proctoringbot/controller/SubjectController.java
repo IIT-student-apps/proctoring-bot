@@ -20,18 +20,14 @@ public class SubjectController {
 
     private final SubjectService subjectService;
 
-    @TelegramRequestMapping(from = State.ADD_NEW_SUBJECT, to = State.MENU_TEACHER)
+    @TelegramRequestMapping(from = State.ADD_NEW_SUBJECT, to = State.PICK_TEACHER_MENU_ITEM)
     @AllowedRoles(Role.TEACHER)
     public void addNewSubject(TelegramRequest req, TelegramResponse resp) {
         String subjectRequest = req.getMessage();
         inputValidator.validateNewSubjectInput(subjectRequest);
         subjectService.addSubject(subjectRequest, req.getUser());
-        SendMessage message = SendMessage.builder()
-                .chatId(req.getUpdate().getMessage().getFrom().getId())
-                .text("Предмет успешно сохранен")
-                .build();
+        SendMessage message = MenuControllerHelper.getTeacherMenuSendMessageWithText("Предмет успешно сохранен\nМеню:", req);
         resp.setResponse(message);
     }
 
-//    @TelegramRequestMapping(from = State.PICK_TEACHER_MENU_ITEM, to = State.)
 }

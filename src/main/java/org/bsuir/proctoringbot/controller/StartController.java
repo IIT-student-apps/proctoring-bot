@@ -11,11 +11,6 @@ import org.bsuir.proctoringbot.bot.statemachine.State;
 import org.bsuir.proctoringbot.service.StudentService;
 import org.bsuir.proctoringbot.util.TelegramUtil;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @TelegramController
 @RequiredArgsConstructor
@@ -23,32 +18,10 @@ public class StartController {
 
     public final StudentService studentService;
 
-    @TelegramRequestMapping(from = State.NEW_TEACHER, to = State.MENU_TEACHER)
+    @TelegramRequestMapping(from = State.NEW_TEACHER, to = State.PICK_TEACHER_MENU_ITEM)
     @AllowedRoles(Role.TEACHER)
     public void helloTeacher(TelegramRequest req, TelegramResponse resp){
-        SendMessage message = SendMessage.builder()
-                .chatId(req.getUpdate().getMessage().getFrom().getId())
-                .text("Добро пожаловать, " + req.getUser().getName() + "!")
-                .build();
-
-        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
-        keyboardMarkup.setResizeKeyboard(true);
-        keyboardMarkup.setOneTimeKeyboard(true);
-        List<KeyboardRow> keyboard = new ArrayList<>();
-
-        KeyboardRow row1 = new KeyboardRow();
-        row1.add("Кнопка 1");
-        row1.add("Кнопка 2");
-
-        KeyboardRow row2 = new KeyboardRow();
-        row2.add("Кнопка 3");
-
-
-        keyboard.add(row1);
-        keyboard.add(row2);
-        keyboardMarkup.setKeyboard(keyboard);
-
-        message.setReplyMarkup(keyboardMarkup);
+        SendMessage message = MenuControllerHelper.getTeacherMenuSendMessageWithText("Добро пожаловать, " + req.getUser().getName() + "!\n" + "Меню:", req);
 
         resp.setResponse(message);
     }
@@ -64,13 +37,11 @@ public class StartController {
         resp.setResponse(message);
     }
 
-    @TelegramRequestMapping(from = State.REGISTRATION, to = State.MENU_STUDENT)
+    @TelegramRequestMapping(from = State.REGISTRATION, to = State.PICK_STUDENT_MENU_ITEM)
     @AllowedRoles(Role.USER)
     public void registerStudent(TelegramRequest req, TelegramResponse resp){
         studentService.registerUserByNameAndGroup(req.getUser(), req.getMessage());
-        resp.setResponse(SendMessage.builder()
-                .chatId(TelegramUtil.getChatId(req.getUpdate()))
-                .text("Вы успешно зарегистрированы как студент")
-                .build());
+        SendMessage message = MenuControllerHelper.getStudentMenuSendMessageWithText("Вы успешно зарегистрированы как студент\nМеню:", req);
+        resp.setResponse(message);
     }
 }

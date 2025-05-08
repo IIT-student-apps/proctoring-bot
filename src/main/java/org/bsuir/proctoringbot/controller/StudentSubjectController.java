@@ -8,7 +8,6 @@ import org.bsuir.proctoringbot.bot.dispatcher.TelegramResponse;
 import org.bsuir.proctoringbot.bot.exception.TelegramMessageException;
 import org.bsuir.proctoringbot.bot.security.AllowedRoles;
 import org.bsuir.proctoringbot.bot.security.Role;
-import org.bsuir.proctoringbot.bot.security.UserDetails;
 import org.bsuir.proctoringbot.bot.security.UserService;
 import org.bsuir.proctoringbot.bot.statemachine.State;
 import org.bsuir.proctoringbot.model.IntermediateStateData;
@@ -24,7 +23,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.bsuir.proctoringbot.util.Constants.*;
+import static org.bsuir.proctoringbot.util.Constants.MENU_FOR_INFORMATION_ABOUT_LABS_BUTT0N;
+import static org.bsuir.proctoringbot.util.Constants.MENU_FOR_INFORMATION_ABOUT_LABS_BUTT0N_CALLBACK;
+import static org.bsuir.proctoringbot.util.Constants.MENU_FOR_LECTIONS_BUTT0N;
+import static org.bsuir.proctoringbot.util.Constants.MENU_FOR_LECTIONS_BUTT0N_CALLBACK;
+import static org.bsuir.proctoringbot.util.Constants.MENU_FOR_LINK_BUTT0N;
+import static org.bsuir.proctoringbot.util.Constants.MENU_FOR_LINK_BUTT0N_CALLBACK;
 
 @TelegramController
 @RequiredArgsConstructor
@@ -46,7 +50,7 @@ public class StudentSubjectController {
     private final UserService dbUserService;
     private final SubjectService subjectService;
 
-    @TelegramRequestMapping(from = State.MENU_STUDENT_GET_INFORMATION, to = State.MENU_STUDENT)
+    @TelegramRequestMapping(from = State.MENU_STUDENT_GET_INFORMATION, to = State.PICK_STUDENT_MENU_ITEM)
     @AllowedRoles(Role.STUDENT)
     public void pickMenuAboutSubject(TelegramRequest req, TelegramResponse resp) {
         if (req.getUpdate().hasCallbackQuery()) {
@@ -70,9 +74,7 @@ public class StudentSubjectController {
             }
 
         } else {
-            UserDetails user = req.getUser();
-            user.setState(State.MENU_STUDENT);
-            dbUserService.updateUser(user);
+            throw new TelegramMessageException("Выберите действие нажав по кнопке");
         }
     }
 
@@ -86,10 +88,7 @@ public class StudentSubjectController {
             }
             sb.append(System.lineSeparator());
         }
-        SendMessage message = SendMessage.builder()
-                .chatId(TelegramUtil.getChatId(req.getUpdate()))
-                .text(sb.toString())
-                .build();
+        SendMessage message = MenuControllerHelper.getStudentMenuSendMessageWithText(sb + "\nМеню:", req);
         resp.setResponse(message);
     }
 

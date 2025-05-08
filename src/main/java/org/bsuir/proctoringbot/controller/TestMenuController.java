@@ -64,27 +64,23 @@ public class TestMenuController {
         }
     }
 
-    @TelegramRequestMapping(from = State.TEACHER_ADD_TEST, to = State.MENU_TEACHER)
+    @TelegramRequestMapping(from = State.TEACHER_ADD_TEST, to = State.PICK_TEACHER_MENU_ITEM)
     @AllowedRoles(Role.TEACHER)
     public void addTest(TelegramRequest req, TelegramResponse resp) {
         testService.addTest(req.getUser(), req.getMessage());
-        resp.setResponse(SendMessage.builder()
-                .chatId(TelegramUtil.getChatId(req.getUpdate()))
-                .text("Тест успешно добавлен")
-                .build());
+        SendMessage message = MenuControllerHelper.getTeacherMenuSendMessageWithText("Тест успешно добавлен", req);
+        resp.setResponse(message);
     }
 
-    @TelegramRequestMapping(from = State.TEACHER_ACTIVATE_TEST, to = State.MENU_TEACHER)
+    @TelegramRequestMapping(from = State.TEACHER_ACTIVATE_TEST, to = State.PICK_TEACHER_MENU_ITEM)
     @AllowedRoles(Role.TEACHER)
     public void activateTest(TelegramRequest req, TelegramResponse resp) {
         if (req.getUpdate().getCallbackQuery() == null){
             throw new TelegramMessageException("Пожалуйста, выберите тест через кнопку");
         }
         testService.activateTest(req.getUser(), req.getUpdate().getCallbackQuery().getData());
-        resp.setResponse(SendMessage.builder()
-                .chatId(TelegramUtil.getChatId(req.getUpdate()))
-                .text("Тест успешно активирован")
-                .build());
+        SendMessage message = MenuControllerHelper.getTeacherMenuSendMessageWithText("Тест успешно активирован", req);
+        resp.setResponse(message);
     }
 
     private void formActivateTestRequest(TelegramRequest req, TelegramResponse resp){

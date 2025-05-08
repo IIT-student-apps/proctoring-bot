@@ -13,10 +13,9 @@ public class AuthenticationManager {
     private final UserService spreadsheetsUserService;
     private final UserService dbUserService;
 
-
     public UserDetails authenticate(Long userId, String username) {
         try {
-            if (dbUserService.existsById(userId)){
+            if (dbUserService.existsById(userId)) {
                 return dbUserService.getUserById(userId);
             }
             UserDetails userDetails = spreadsheetsUserService.getUserByUsername(username);

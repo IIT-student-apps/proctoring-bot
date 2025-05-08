@@ -12,7 +12,10 @@ import org.bsuir.proctoringbot.bot.security.UserDetails;
 import org.bsuir.proctoringbot.bot.security.UserService;
 import org.bsuir.proctoringbot.bot.statemachine.State;
 import org.bsuir.proctoringbot.model.IntermediateStateData;
-import org.bsuir.proctoringbot.service.*;
+import org.bsuir.proctoringbot.service.IntermediateStateService;
+import org.bsuir.proctoringbot.service.LabWorkService;
+import org.bsuir.proctoringbot.service.SubjectService;
+import org.bsuir.proctoringbot.service.TestService;
 import org.bsuir.proctoringbot.transformer.SubjectTransformer;
 import org.bsuir.proctoringbot.util.TelegramUtil;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -24,11 +27,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.bsuir.proctoringbot.util.Constants.*;
+import static org.bsuir.proctoringbot.util.Constants.GET_INFO_STUDENT_MENU_BUTTON_CALLBACK;
+import static org.bsuir.proctoringbot.util.Constants.GET_INFO_STUDENT_MENU_BUTTON_MESSAGE;
+import static org.bsuir.proctoringbot.util.Constants.GET_RESULTS_STUDENT_MENU_BUTTON_CALLBACK;
+import static org.bsuir.proctoringbot.util.Constants.GET_RESULTS_STUDENT_MENU_BUTTON_MESSAGE;
+import static org.bsuir.proctoringbot.util.Constants.SEND_WORK_STUDENT_MENU_BUTTON_CALLBACK;
+import static org.bsuir.proctoringbot.util.Constants.SEND_WORK_STUDENT_MENU_BUTTON_MESSAGE;
+import static org.bsuir.proctoringbot.util.Constants.TAKE_TEST_STUDENT_MENU_BUTTON_CALLBACK;
+import static org.bsuir.proctoringbot.util.Constants.TAKE_TEST_STUDENT_MENU_BUTTON_MESSAGE;
 
 @TelegramController
 @RequiredArgsConstructor
 public class StudentMenuController {
+
     private static final Map<String, String> FIRST_ROW_BUTTONS = Map.of(
             GET_INFO_STUDENT_MENU_BUTTON_MESSAGE, GET_INFO_STUDENT_MENU_BUTTON_CALLBACK,
             SEND_WORK_STUDENT_MENU_BUTTON_MESSAGE, SEND_WORK_STUDENT_MENU_BUTTON_CALLBACK
@@ -111,9 +122,8 @@ public class StudentMenuController {
             }
             dbUserService.updateUser(user);
         } else {
-            UserDetails user = req.getUser();
-            user.setState(State.MENU_STUDENT);
-            dbUserService.updateUser(user);
+            SendMessage message = MenuControllerHelper.getStudentMenuSendMessageWithText("Меню:", req);
+            resp.setResponse(message);
         }
     }
 
@@ -142,11 +152,7 @@ public class StudentMenuController {
                     .replyMarkup(inlineKeyboardMarkup)
                     .build());
         } else {
-            resp.setResponse(SendMessage.builder()
-                    .chatId(TelegramUtil.getChatId(req.getUpdate()))
-                    .text("выберите предмет, нажав кнопку")
-                    .build()
-            );
+            throw new TelegramMessageException("Выберите предмет, нажав кнопку");
         }
     }
 
@@ -168,30 +174,20 @@ public class StudentMenuController {
                     .text("скиньте ссылку на лабораторную работу:")
                     .build());
         } else {
-            resp.setResponse(SendMessage.builder()
-                    .chatId(TelegramUtil.getChatId(req.getUpdate()))
-                    .text("выберите лабораторную, нажав кнопку")
-                    .build()
-            );
+            throw new TelegramMessageException("Выберите лабораторную, нажав кнопку");
         }
     }
 
-    @TelegramRequestMapping(from = State.STUDENT_SHARE_LAB_WORK_LINK, to = State.MENU_STUDENT)
+    @TelegramRequestMapping(from = State.STUDENT_SHARE_LAB_WORK_LINK, to = State.PICK_STUDENT_MENU_ITEM)
     @AllowedRoles(Role.STUDENT)
     public void sendLabWork(TelegramRequest req, TelegramResponse resp) {
         if (req.getUpdate().hasMessage()) {
             String link = req.getUpdate().getMessage().getText();
             labWorkService.saveLabWork(req.getUser(), link);
-            resp.setResponse(SendMessage.builder()
-                    .chatId(TelegramUtil.getChatId(req.getUpdate()))
-                    .text("Ссылка успешно сохранена")
-                    .build());
+            SendMessage message = MenuControllerHelper.getStudentMenuSendMessageWithText("Ссылка успешно сохранена\nМеню:", req);
+            resp.setResponse(message);
         } else {
-            resp.setResponse(SendMessage.builder()
-                    .chatId(TelegramUtil.getChatId(req.getUpdate()))
-                    .text("скиньте ссылку на лабораторную работу")
-                    .build()
-            );
+            throw new TelegramMessageException("Скиньте ссылку на лабораторную работу");
         }
     }
 
@@ -214,6 +210,5 @@ public class StudentMenuController {
         message.setReplyMarkup(inlineKeyboardMarkup);
         resp.setResponse(message);
     }
-
 
 }

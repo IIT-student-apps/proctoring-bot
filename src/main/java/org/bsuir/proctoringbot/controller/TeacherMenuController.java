@@ -35,6 +35,7 @@ import static org.bsuir.proctoringbot.util.Constants.*;
 @RequiredArgsConstructor
 public class TeacherMenuController {
 
+
     private static final Map<String, String> FIRST_ROW_BUTTONS = Map.of(
             ADD_SUBJECT_BUTTON_MESSAGE, ADD_SUBJECT_BUTTON_CALLBACK,
             UPDATE_SUBJECT_INFO_BUTTON_MESSAGE, UPDATE_SUBJECT_INFO_BUTTON_CALLBACK
@@ -162,8 +163,9 @@ public class TeacherMenuController {
             dbUserService.updateUser(user);
         } else {
             UserDetails user = req.getUser();
-            user.setState(State.MENU_TEACHER);
-            dbUserService.updateUser(user);
+            user.setState(State.PICK_TEACHER_MENU_ITEM);
+            SendMessage message = MenuControllerHelper.getTeacherMenuSendMessageWithText("Меню: ", req);
+            resp.setResponse(message);
         }
     }
 
@@ -192,38 +194,41 @@ public class TeacherMenuController {
             dbUserService.updateUser(user);
         } else {
             UserDetails user = req.getUser();
-            user.setState(State.MENU_TEACHER);
-            dbUserService.updateUser(user);
+            user.setState(State.PICK_TEACHER_MENU_ITEM);
+            SendMessage message = MenuControllerHelper.getTeacherMenuSendMessageWithText("Меню: ", req);
+            resp.setResponse(message);
         }
     }
 
-    @TelegramRequestMapping(from = State.SUBJECT_TEACHER_UPDATE_MENU)
-    @AllowedRoles(Role.TEACHER)
-    public void pickUpdateInfoMenuItem(TelegramRequest req, TelegramResponse resp) {
-        if (req.getUpdate().hasCallbackQuery()) {
-            CallbackQuery callbackQuery = req.getUpdate().getCallbackQuery();
-            String callbackData = callbackQuery.getData();
-            UserDetails user = req.getUser();
-            switch (callbackData) {
-                case GET_WORKS_INFO_CALLBACK -> {
-                    createResponseGetLabWorks(req, resp);
-                    user.setState(State.MENU_TEACHER);
-                }
-                case GET_LECTURES_INFO_CALLBACK -> {
-
-                }
-                case GET_MATERIALS_INFO_CALLBACK -> {
-
-                }
-                default -> throw new TelegramMessageException("Для такой кнопки нет функционала");
-            }
-            dbUserService.updateUser(user);
-        } else {
-            UserDetails user = req.getUser();
-            user.setState(State.MENU_TEACHER);
-            dbUserService.updateUser(user);
-        }
-    }
+//    @TelegramRequestMapping(from = State.SUBJECT_TEACHER_UPDATE_MENU)
+//    @AllowedRoles(Role.TEACHER)
+//    public void pickUpdateInfoMenuItem(TelegramRequest req, TelegramResponse resp) {
+//        if (req.getUpdate().hasCallbackQuery()) {
+//            CallbackQuery callbackQuery = req.getUpdate().getCallbackQuery();
+//            String callbackData = callbackQuery.getData();
+//            UserDetails user = req.getUser();
+//            switch (callbackData) {
+//                case GET_WORKS_INFO_CALLBACK -> {
+//                    createResponseGetLabWorks(req, resp);
+//                    user.setState(State.MENU_TEACHER);
+//                }
+//                case GET_LECTURES_INFO_CALLBACK -> {
+//                    createResponseGetLabWorks(req, resp);
+//
+//                }
+//                case GET_MATERIALS_INFO_CALLBACK -> {
+//
+//
+//                }
+//                default -> throw new TelegramMessageException("Для такой кнопки нет функционала");
+//            }
+//            dbUserService.updateUser(user);
+//        } else {
+//            UserDetails user = req.getUser();
+//            user.setState(State.MENU_TEACHER);
+//            dbUserService.updateUser(user);
+//        }
+//    }
 
     private void createResponseGetLabWorks(TelegramRequest req, TelegramResponse resp) {
         List<LabWork> labWorks = labWorkService.getAllLabWorks(req.getUser());
@@ -241,9 +246,6 @@ public class TeacherMenuController {
         resp.setResponse(message);
     }
 
-
-
-
     private void createResponseAddSubjectInfo(TelegramRequest req, TelegramResponse resp, String text) {
         SendMessage message = SendMessage.builder()
                 .chatId(TelegramUtil.getChatId(req.getUpdate()))
@@ -252,45 +254,36 @@ public class TeacherMenuController {
         resp.setResponse(message);
     }
 
-    @TelegramRequestMapping(from = ADD_LAB_WORK_TEACHER_MENU, to = MENU_TEACHER)
+    @TelegramRequestMapping(from = ADD_LAB_WORK_TEACHER_MENU, to = PICK_TEACHER_MENU_ITEM)
     public void pickAddLabWorkItem(TelegramRequest req, TelegramResponse resp) {
         if (!req.getUpdate().hasMessage()) {
             throw new TelegramMessageException("введите название и ссылку на лабораторную");
         }
         String text = req.getUpdate().getMessage().getText();
         teacherService.addInfoToSubject(req.getUser(), text, "Лабораторные");
-        SendMessage message = SendMessage.builder()
-                .chatId(TelegramUtil.getChatId(req.getUpdate()))
-                .text("информация успешно сохранена")
-                .build();
+        SendMessage message = MenuControllerHelper.getTeacherMenuSendMessageWithText("Информация успешно сохранена", req);
         resp.setResponse(message);
     }
 
-    @TelegramRequestMapping(from = ADD_LECTURE_TEACHER_MENU, to = MENU_TEACHER)
+    @TelegramRequestMapping(from = ADD_LECTURE_TEACHER_MENU, to = PICK_TEACHER_MENU_ITEM)
     public void pickAddLectureItem(TelegramRequest req, TelegramResponse resp) {
         if (!req.getUpdate().hasMessage()) {
             throw new TelegramMessageException("введите название и ссылку на лекцию");
         }
         String text = req.getUpdate().getMessage().getText();
         teacherService.addInfoToSubject(req.getUser(), text, "Лекции");
-        SendMessage message = SendMessage.builder()
-                .chatId(TelegramUtil.getChatId(req.getUpdate()))
-                .text("информация успешно сохранена")
-                .build();
+        SendMessage message = MenuControllerHelper.getTeacherMenuSendMessageWithText("Информация успешно сохранена", req);
         resp.setResponse(message);
     }
 
-    @TelegramRequestMapping(from = ADD_MATERIALS_TEACHER_MENU, to = MENU_TEACHER)
+    @TelegramRequestMapping(from = ADD_MATERIALS_TEACHER_MENU, to = PICK_TEACHER_MENU_ITEM)
     public void pickAddMaterialsItem(TelegramRequest req, TelegramResponse resp) {
         if (!req.getUpdate().hasMessage()) {
             throw new TelegramMessageException("введите название и ссылку на материалы");
         }
         String text = req.getUpdate().getMessage().getText();
         teacherService.addInfoToSubject(req.getUser(), text, "Полезные ссылки");
-        SendMessage message = SendMessage.builder()
-                .chatId(TelegramUtil.getChatId(req.getUpdate()))
-                .text("информация успешно сохранена")
-                .build();
+        SendMessage message = MenuControllerHelper.getTeacherMenuSendMessageWithText("Информация успешно сохранена", req);
         resp.setResponse(message);
     }
 
