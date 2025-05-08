@@ -12,8 +12,9 @@ import java.util.Map;
 
 import static org.bsuir.proctoringbot.util.Constants.ADD_SUBJECT_BUTTON_CALLBACK;
 import static org.bsuir.proctoringbot.util.Constants.ADD_SUBJECT_BUTTON_MESSAGE;
+import static org.bsuir.proctoringbot.util.Constants.CHECK_LAB_WORK_BUTTON_CALLBACK;
 import static org.bsuir.proctoringbot.util.Constants.EDIT_LAB_WORK_BUTTON_CALLBACK;
-import static org.bsuir.proctoringbot.util.Constants.EDIT_LAB_WORK_BUTTON_MESSAGE;
+import static org.bsuir.proctoringbot.util.Constants.CHECK_LAB_WORK_BUTTON_MESSAGE;
 import static org.bsuir.proctoringbot.util.Constants.GET_INFO_STUDENT_MENU_BUTTON_CALLBACK;
 import static org.bsuir.proctoringbot.util.Constants.GET_INFO_STUDENT_MENU_BUTTON_MESSAGE;
 import static org.bsuir.proctoringbot.util.Constants.GET_RESULTS_STUDENT_MENU_BUTTON_CALLBACK;
@@ -35,7 +36,7 @@ public class MenuControllerHelper {
     );
 
     private static final Map<String, String> SECOND_ROW_TEACHER_BUTTONS = Map.of(
-            EDIT_LAB_WORK_BUTTON_MESSAGE, EDIT_LAB_WORK_BUTTON_CALLBACK
+            CHECK_LAB_WORK_BUTTON_MESSAGE, CHECK_LAB_WORK_BUTTON_CALLBACK
     );
 
     private static final Map<String, String> THIRD_ROW_TEACHER_BUTTONS = Map.of(

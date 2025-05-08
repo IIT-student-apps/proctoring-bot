@@ -92,7 +92,6 @@ public class StudentSubjectController {
         resp.setResponse(message);
     }
 
-
     @TelegramRequestMapping(from = State.PICK_SUBJECT_STUDENT, to = State.MENU_STUDENT_GET_INFORMATION)
     @AllowedRoles(Role.STUDENT)
     public void sendMenuGetInfoAboutLR(TelegramRequest req, TelegramResponse resp) {

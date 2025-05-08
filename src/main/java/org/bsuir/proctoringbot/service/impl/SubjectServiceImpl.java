@@ -60,6 +60,7 @@ public class SubjectServiceImpl implements SubjectService {
         );
         return spreadsheetsService.getAllLinks(spreadsheetId);
     }
+
     @Override
     public List<List<String>> getAllLectures(UserDetails userDetails) {
         String subject = intermediateStateService.findIntermediateStateByUserId(userDetails.getId())
@@ -80,6 +81,43 @@ public class SubjectServiceImpl implements SubjectService {
         String studentGroup = spreadsheetsService.getStudentGroup(userDetails);
         String spreadsheetId = SpreadsheetsUtil.getSpreadsheetId(
                 spreadsheetsService.getSubjectSpreadsheetURL(subject, studentGroup)
+        );
+        return spreadsheetsService.getAllLabs(spreadsheetId);
+    }
+
+    @Override
+    public List<List<String>> getAllLinksForTeacher(UserDetails userDetails) {
+        String subject = intermediateStateService.findIntermediateStateByUserId(userDetails.getId())
+                .map(state -> state.getState().getPickedSubject())
+                .orElseThrow(() -> new TelegramMessageException("Непредвиденная ошибка"));
+        String studentGroup = spreadsheetsService.getStudentGroup(userDetails);
+        List<String> teachersGroups = spreadsheetsService.getTeachersGroups(userDetails);
+        String spreadsheetId = SpreadsheetsUtil.getSpreadsheetId(
+                spreadsheetsService.getSubjectSpreadsheetURL(subject, teachersGroups.get(0))
+        );
+        return spreadsheetsService.getAllLinks(spreadsheetId);
+    }
+
+    @Override
+    public List<List<String>> getAllLecturesForTeacher(UserDetails userDetails) {
+        String subject = intermediateStateService.findIntermediateStateByUserId(userDetails.getId())
+                .map(state -> state.getState().getPickedSubject())
+                .orElseThrow(() -> new TelegramMessageException("Непредвиденная ошибка"));
+        List<String> teachersGroups = spreadsheetsService.getTeachersGroups(userDetails);
+        String spreadsheetId = SpreadsheetsUtil.getSpreadsheetId(
+                spreadsheetsService.getSubjectSpreadsheetURL(subject, teachersGroups.get(0))
+        );
+        return spreadsheetsService.getAllLectures(spreadsheetId);
+    }
+
+    @Override
+    public List<List<String>> getAllLabWorksForTeacher(UserDetails userDetails) {
+        String subject = intermediateStateService.findIntermediateStateByUserId(userDetails.getId())
+                .map(state -> state.getState().getPickedSubject())
+                .orElseThrow(() -> new TelegramMessageException("Непредвиденная ошибка"));
+        List<String> teachersGroups = spreadsheetsService.getTeachersGroups(userDetails);
+        String spreadsheetId = SpreadsheetsUtil.getSpreadsheetId(
+                spreadsheetsService.getSubjectSpreadsheetURL(subject, teachersGroups.get(0))
         );
         return spreadsheetsService.getAllLabs(spreadsheetId);
     }

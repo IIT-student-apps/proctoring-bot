@@ -92,7 +92,6 @@ public class StudentMenuController {
         rowsInline.add(secondRowButtons);
         inlineKeyboardMarkup.setKeyboard(rowsInline);
 
-        message.setText("Меню:");
         message.setReplyMarkup(inlineKeyboardMarkup);
 
         resp.setResponse(message);
@@ -166,8 +165,8 @@ public class StudentMenuController {
             intermediateStateService.updateIntermediateState(
                     user,
                     IntermediateStateData.builder()
-                    .pickedLabWorkNumber(callbackData)
-                    .build()
+                            .pickedLabWorkNumber(callbackData)
+                            .build()
             );
             resp.setResponse(SendMessage.builder()
                     .chatId(TelegramUtil.getChatId(req.getUpdate()))
