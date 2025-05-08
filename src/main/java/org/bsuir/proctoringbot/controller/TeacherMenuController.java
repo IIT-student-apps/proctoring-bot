@@ -43,7 +43,7 @@ public class TeacherMenuController {
     );
 
     private static final Map<String, String> SECOND_ROW_BUTTONS = Map.of(
-            CHECK_LAB_WORK_BUTTON_MESSAGE, EDIT_LAB_WORK_BUTTON_CALLBACK
+            CHECK_LAB_WORK_BUTTON_MESSAGE, CHECK_LAB_WORK_BUTTON_CALLBACK
     );
 
     private static final Map<String, String> THIRD_ROW_BUTTONS = Map.of(
@@ -51,8 +51,8 @@ public class TeacherMenuController {
     );
 
     private static final Map<String, String> TEST_MENU_BUTTONS_FIRST_ROW = Map.of(
-            ADD_TEST_INFO_BUTTON, ADD_TEST_INFO_BUTTON_CALLBACK,
-            EDIT_TEST_INFO_BUTTON, EDIT_TEST_INFO_BUTTON_CALLBACK
+            ADD_TEST_INFO_BUTTON, ADD_TEST_INFO_BUTTON_CALLBACK
+//            EDIT_TEST_INFO_BUTTON, EDIT_TEST_INFO_BUTTON_CALLBACK
     );
 
     private static final Map<String, String> SUBJECT_FIRST_MENU_BUTTONS = Map.of(
@@ -68,7 +68,7 @@ public class TeacherMenuController {
     );
 
     private static final Map<String, String> TEST_MENU_BUTTONS_SECOND_ROW = Map.of(
-            DELETE_TEST_INFO_BUTTON, DELETE_TEST_INFO_BUTTON_CALLBACK,
+//            DELETE_TEST_INFO_BUTTON, DELETE_TEST_INFO_BUTTON_CALLBACK,
             ACTIVATE_TEST_BUTTON, ACTIVATE_TEST_BUTTON_CALLBACK
     );
 
